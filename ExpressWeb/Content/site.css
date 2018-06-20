@@ -1,0 +1,43 @@
+﻿p, ul, h1 {
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+}
+
+#wap {
+    width: 100%;
+}
+
+.logo {
+    background-image: url(/Content/themes/default/images/logo.png);
+    background-repeat: no-repeat;
+    background-position-y: center;
+    height: 44px;
+    padding-left: 50px;
+    width: 400px;
+    margin: 0 auto;
+    font-family: '微软雅黑','黑体';
+    color: #fff;
+    font-size: 30px;
+}
+
+.logout {
+    background-image: url(/Content/themes/default/images/user.png);
+    background-repeat: no-repeat;
+    background-position: 0 center;
+    color: #fff;
+    padding-left: 20px;
+    float: right;
+    margin-right: 40px;
+}
+
+.easyui-linkbutton {
+    color: #000000;
+}

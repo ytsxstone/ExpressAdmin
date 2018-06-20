@@ -1,0 +1,8 @@
+﻿body { background-color: #e3e8ef; }
+.login { width: 300px; margin: 400px auto; }
+.row-div { margin-top: 10px; }
+.center { text-align: center; }
+.margin-left { margin-left: 5px; }
+.btn_d { cursor: pointer; }
+.left-span { width: 70px; display: inline-block; }
+.txt { border: 0; width: 220px; height: 30px; line-height: 30px; }

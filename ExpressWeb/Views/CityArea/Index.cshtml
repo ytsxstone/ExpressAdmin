@@ -1,0 +1,347 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    .select {
+        border-radius: 5px;
+        height: 22px;
+        line-height: 22px;
+        border: 1px solid #95B8E7;
+    }
+</style>
+
+<div id="cityarea_Panel">
+    <div id="cityarea_Header" style="padding: 5px;">
+        @using (Html.BeginForm("Import", "CityArea", FormMethod.Post, new { id = "frm_cityarea", enctype = "multipart/form-data" }))
+        {
+        <div id="cityarea_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+            <a href="javascript:;" id="cityarea_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+            <a href="javascript:;" id="cityarea_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+            <a href="javascript:;" id="cityarea_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+            <input type="file" id="p_file" name="p_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+            <input type="submit" id="cityarea_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
+            <a href="javascript:;" id="cityarea_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
+            <a href="javascript:;" id="cityarea_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出</a>
+            <label for="cityarea_search_name" style="margin-left: 10px;">名称：</label>
+            <input id="cityarea_search_name" name="cityarea_search_name" class="select searchText" style="width: 135px" maxlength="20" />
+            <a href="javascript:;" id="cityarea_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+        </div>
+        }
+    </div>
+    <div id="cityarea_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="cityarea_InfoList"></table>
+    </div>
+</div>
+
+<!--对话框-->
+<div id="cityarea_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#cityarea_dlgButtons'">
+    <form id="cityarea_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 30px; " cellspacing="7">
+            <tr>
+                <td style="text-align: right;">省份/直辖市：</td>
+                <td>
+                    <input id="province" required validtype="length[2,50]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">城市：</td>
+                <td>
+                    <input id="city" required validtype="length[2,50]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">邮编：</td>
+                <td>
+                    <input id="postcode" required validtype="length[1,50]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="areaid" value="" />
+    </form>
+</div>
+<div id="cityarea_dlgButtons">
+    <a href="javascript:;" id="cityarea_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="cityarea_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script>
+    var cityareaFlag = 0;
+    var queryParams = {};
+    var sortColumn = 'areaid', sortType = 'asc';
+
+    $(function () {
+        //$("#cityarea_Panel").parent(".panel-body")[0].style.height = '800px';
+
+        LoadPageCityAreaData();
+
+        //新增
+        $("#cityarea_btnAdd").on("click", function () {
+            cityareaFlag = 0;
+            Window.openSmallDialog($("#cityarea_dlg"), "添加地区信息", 'icon-add', disposeCityArea);
+            bindEventCityArea();
+        });
+
+        //修改
+        $("#cityarea_btnEdit").on("click", function () {
+            cityareaFlag = 1;
+            var row = $("#cityarea_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEventCityArea();
+                $("#areaid").val(row[0].areaid);
+                $("#province").val(row[0].areaprovince);
+                $("#city").val(row[0].areacity);
+                $("#postcode").val(row[0].areapostcode);
+                Window.openSmallDialog($("#cityarea_dlg"), "修改地区信息", 'icon-add', disposeCityArea);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+         //删除
+        $("#cityarea_btnDel").on("click", function () {
+            var row = $("#cityarea_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合  
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].areaid)
+                        }  
+
+                        $.post('@Url.Action("Delete", "CityArea")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                LoadPageCityAreaData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //查询
+        $("#cityarea_btnQuery").on("click", function () {
+            LoadPageCityAreaData();
+        });
+
+        //导入
+        var options = {
+            beforeSubmit: showRequest,
+            error: showError,
+            success: showResponse
+        };
+        $("#frm_cityarea").submit(function () {
+            $(this).ajaxSubmit(options);
+            return false;
+        });
+        //导入
+        $("#cityarea_linkImport").click(function () {
+            $("#cityarea_btnImport").trigger("click");
+        });
+
+        ///禁止回车触发form提交
+        $("#cityarea_search_name").keypress(function (event) {
+            var e = event || window.event;
+            if (e.keyCode == 13) {
+                return false;
+            }
+        });
+
+        //导出
+        $("#cityarea_btnExport").click(function () {
+            var url = '@Url.Action("ExportExcel", "CityArea")?name=' + queryParams.name + "&sort=" + sortColumn + "&order=" + sortType;
+            if ($("#cityarea_InfoList").datagrid("getRows").length > 0) {
+                window.location = url;
+            }
+            else {
+                $.messager.alert("提示", "暂无数据可导出！");
+            }
+        });
+    });
+
+    function showRequest(formData, jqForm, options) {
+        var file = $("#p_file");
+        if (file.val() === '') {
+            $.messager.alert("提示", "请选择文件！");
+            return false;
+        }
+        var typefile = file.val().substring(file.val().indexOf('.') + 1, file.val().length);
+        if ("xls,xlsx".indexOf(typefile.toLowerCase()) < 0) {
+            $.messager.alert("提示", "请选择正确的文件(excel文件)！");
+            return false;
+        }
+        $.messager.progress({
+            text: '数据处理中...'
+        });
+    }
+
+    function showResponse(responseText, statusText) {
+        $.messager.progress("close");
+        $("#p_file").val("");
+
+        var json = eval(responseText);
+        if (json.Status) {
+            $.messager.alert("提示", json.Msg, "info", function () {
+                LoadPageCityAreaData();
+            });
+        }
+        else {
+            $.messager.alert("提示", json.Msg);
+        }
+    }
+
+    function showError(data) {
+        $.messager.progress("close");
+        $.messager.alert("提示", '请求错误！');
+    }
+
+    var disposeCityArea = function () {
+        $("#cityarea_Ok").unbind("click");
+        $("#cityarea_Cancel").unbind("click");
+    };
+
+    //新增保存
+    var addDataCityArea = function () {
+         var isValid = $("#cityarea_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            province: $("#province").val(),
+            city: $("#city").val(),
+            postcode: $("#postcode").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "CityArea")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#cityarea_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageCityAreaData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+    var editDataCityArea = function () {
+         var isValid = $("#cityarea_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            province: $("#province").val(),
+            city: $("#city").val(),
+            postcode: $("#postcode").val(),
+            areaid: $("#areaid").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Update", "CityArea")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#cityarea_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageCityAreaData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEventCityArea = function () {
+        //确定按钮事件
+        $("#cityarea_Ok").click(function () {
+            switch (cityareaFlag) {
+                case 0:
+                    //新增
+                    addDataCityArea();
+                    break;
+                case 1:
+                    //修改
+                    editDataCityArea();
+                    break;
+                default:
+                    Window.closeDialog($("#cityarea_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#cityarea_Cancel").click(function () {
+            Window.closeDialog($("#cityarea_dlg"));
+        });
+    };
+
+    //页面数据加载
+    function LoadPageCityAreaData() {
+        queryParams.name = $("#cityarea_search_name").val();
+
+        $("#cityarea_InfoList").datagrid({
+            url: "@Url.Action("GetCityAreaData", "CityArea")",
+            method: "post",
+            queryParams: queryParams,
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'areaid', title: 'areaid', hidden: true },
+                    { field: 'areaprovince', title: '省份/直辖市', width: 195, align: 'left', sortable: true },
+                    { field: 'areacity', title: '城市', width: 195, align: 'left', sortable: true },
+                    { field: 'areapostcode', title: '邮编', width: 125, align: 'center', sortable: true },
+                    { field: 'created', title: '创建人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'created_time', title: '创建时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                    { field: 'updated', title: '修改人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'updated_time', title: '修改时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                ]
+            ],
+            pagination: true,
+            pageNumber: 1,
+            pageSize: 20,
+            pageList: [20, 50, 100, 500],
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg: "数据加载中....",
+            onLoadSuccess: function (data) {
+                sortColumn = data.sortColumn;
+                sortType = data.sortType
+                
+                $(this).datagrid("fixRowNumber");
+            }
+        });
+    }
+</script>

@@ -1,0 +1,260 @@
+﻿@{
+    Layout = null;
+}
+
+<div id="NodeMgr_Panel">
+    <div id="NodeMgr_Header" style="padding: 5px;">
+        <div id="NodeMgr_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+            <a href="javascript:;" id="NodeMgr_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+            <a href="javascript:;" id="NodeMgr_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+            <a href="javascript:;" id="NodeMgr_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+            <label for="NodeMgr_Name" style="margin-left: 10px;">菜单名称：</label>
+            <input id="NodeMgr_Name" name="NodeMgr_Name" class="easyui-textbox searchText" style="width: 120px" maxlength="20" />
+            <a href="javascript:;" id="NodeMgr_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+        </div>
+    </div>
+    <div id="NodeMgr_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="NodeMgr_InfoList"></table>
+    </div>
+</div>
+
+<!--对话框-->
+<div id="NodeMgr_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#NodeMgr_dlgButtons'">
+    <form id="NodeMgr_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 30px; padding-top: 5px;" cellspacing="7">
+            <tr>
+                <td style="text-align: right;">上级ID：</td>
+                <td>
+                    <input id="parentId" required validtype="integer" class="easyui-validatebox text1" style="width: 200px;" readonly value="0" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">菜单编号：</td>
+                <td>
+                    <input id="code" required validtype="length[1,20]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">菜单名称：</td>
+                <td>
+                    <input id="name" required validtype="length[1,50]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">菜单路径：</td>
+                <td>
+                    <input id="path" class="easyui-validatebox text1" required validtype="length[1,100]" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">菜单排序：</td>
+                <td>
+                    <input id="sort" class="easyui-validatebox text1" required validtype="integer" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">菜单图标：</td>
+                <td>
+                    <input id="icon" class="easyui-validatebox text1" validtype="length[1,50]" data-options="editable:true" style="width: 200px;" />
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="hid" value="" />
+    </form>
+</div>
+
+<div id="NodeMgr_dlgButtons">
+    <a href="javascript:;" id="NodeMgr_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="NodeMgr_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script type="text/javascript">
+    var BUTTON_FLAG = 0;
+
+    $(function () {
+        //$("#NodeMgr_Panel").parent(".panel-body")[0].style.height = '800px';
+
+        //初始化数据加载
+        LoadPageData();
+
+        //新增
+        $("#NodeMgr_btnAdd").on("click", function () {
+            BUTTON_FLAG = 0;
+            $("#parentId").val("0");
+            Window.openSmallDialog($("#NodeMgr_dlg"), "添加菜单", 'icon-add', dispose);
+            bindEvent();
+        });
+
+        //修改
+        $("#NodeMgr_btnEdit").on("click", function () {
+            BUTTON_FLAG = 1;
+            var row = $("#NodeMgr_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEvent();
+                $("#hid").val(row[0].id);
+                $("#parentId").val(row[0].parentid);
+                $("#code").val(row[0].menucode);
+                $("#name").val(row[0].menuname);
+                $("#path").val(row[0].menuurl);
+                $("#sort").val(row[0].menusort);
+                $("#icon").val(row[0].menuicon);
+                Window.openSmallDialog($("#NodeMgr_dlg"), "修改菜单", 'icon-add', dispose);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+        //删除
+        $("#NodeMgr_btnDel").on("click", function () {
+            var row = $("#NodeMgr_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合  
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].id)
+                        }  
+
+                        $.post('@Url.Action("Delete", "Menu")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示",data1.Msg);
+                                LoadPageData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //查询
+        $("#NodeMgr_btnQuery").on("click", function () {
+            LoadPageData();
+        });
+    });
+
+    var dispose = function () {
+        $("#NodeMgr_Ok").unbind("click");
+        $("#NodeMgr_Cancel").unbind("click");
+    };
+
+    //新增保存
+    var addData = function () {
+        var isValid = $("#NodeMgr_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+        //获取参数
+        var params = {
+            parentid: $("#parentId").val(),
+            code: $("#code").val(),
+            name: $("#name").val(),
+            path: $("#path").val(),
+            sort: $("#sort").val(),
+            icon: $("#icon").val()
+        };
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "Menu")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#NodeMgr_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+    var editData = function () {
+        var isValid = $("#NodeMgr_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        var params = {
+            parentid: $("#parentId").val(),
+            code: $("#code").val(),
+            name: $("#name").val(),
+            path: $("#path").val(),
+            sort: $("#sort").val(),
+            icon: $("#icon").val(),
+            id: $("#hid").val()
+        };
+        Ajax.Post("@Url.Action("Update", "Menu")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#NodeMgr_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEvent = function () {
+        //确定按钮事件
+        $("#NodeMgr_Ok").click(function () {
+            switch (BUTTON_FLAG) {
+                case 0:
+                    //新增
+                    addData();
+                    break;
+                case 1:
+                    //修改
+                    editData();
+                    break;
+                default:
+                    Window.closeDialog($("#NodeMgr_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#NodeMgr_Cancel").click(function () {
+            Window.closeDialog($("#NodeMgr_dlg"));
+        });
+    };
+
+    /**
+     * 页面数据加载
+     */
+    function LoadPageData()
+    {
+        $("#NodeMgr_InfoList").datagrid({
+            url: "@Url.Action("GetMenuData", "Menu")",
+            method: "post",
+            queryParams: {
+                name: $("#NodeMgr_Name").val()
+            },
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'id', title: 'id', hidden: true },
+                    { field: 'parentid', title: '上级ID', width: 100, align: 'center' },
+                    { field: 'menucode', title: '菜单编号', width: 100, align: 'center' },
+                    { field: 'menuname', title: '菜单名称', width: 150, align: 'center' },
+                    { field: 'menuurl', title: '菜单路径', width: 250, align: 'left' },
+                    { field: 'menusort', title: '菜单排序', width: 100, align: 'center' },
+                    { field: 'menuicon', title: '菜单图标', width: 120, align: 'left' }
+                ]
+            ],
+            pagination: false,
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg:
+            "数据加载中....",
+            onLoadSuccess: function (data) {
+            }
+        });
+    }
+</script>

@@ -1,0 +1,709 @@
+﻿@using System.Data;
+@{
+    Layout = null;
+}
+
+<style>
+    .select {
+        border-radius: 5px;
+        height: 22px;
+        line-height: 22px;
+        border: 1px solid #95B8E7;
+    }
+    .searchText {
+        border-radius: 5px;
+        border: 1px solid #95B8E7;
+    }
+</style>
+
+<div id="waybill_Panel">
+    <div id="waybill_Header" style="padding: 5px;">
+        @using (Html.BeginForm("Import", "WayBill", FormMethod.Post, new { id = "frm_waybill", enctype = "multipart/form-data" }))
+        {
+        <div id="waybill_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+            <a href="javascript:;" id="waybill_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+            <a href="javascript:;" id="waybill_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+            <a href="javascript:;" id="waybill_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+            <input type="file" id="wb_file" name="wb_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+            <input type="submit" id="waybill_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
+            <a href="javascript:;" id="waybill_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
+            <a href="javascript:;" id="waybill_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出运单数据</a>
+            <a href="javascript:;" id="waybill_btnFailExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出税关号为空的物品数据</a>
+            <a href="javascript:;" id="waybill_btnGenerate" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-reload'">生成</a>
+        </div>
+            <div id="waybill_Toolbar2" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+                <label for="waybill_search_text" style="margin-left: 10px;">入仓号或运单编号：</label>
+                <input id="waybill_search_text" name="waybill_search_text" class="select searchText" style="width: 155px" maxlength="20" />
+                <label for="sel_import_bitch" style="margin-left: 10px;">导入批次号：</label>
+                <select id="sel_import_bitch" class="select">
+                    <option value="全部" selected>全部</option>
+                    <option value="人工录入">人工录入</option>
+                    @{
+                        var dt_import = (DataTable)ViewBag.dtImportBatch;
+                        if (dt_import != null && dt_import.Rows.Count > 0)
+                        {
+                            foreach (DataRow item in dt_import.Rows)
+                            {
+                                <option value="@item["importbatch"]">@item["importbatch"]</option>
+                            }
+                        }
+                    }
+                </select>
+                <label for="sel_bitch" style="margin-left: 10px;">导出批次号：</label>
+                <select id="sel_bitch" class="select">
+                    <option value="全部">全部</option>
+                    <option value="未导出" selected>未导出</option>
+                    @{
+                        var dt_export = (DataTable)ViewBag.dtExportBatch;
+                        if (dt_export != null && dt_export.Rows.Count > 0)
+                        {
+                            foreach (DataRow item in dt_export.Rows)
+                            {
+                                <option value="@item["exportbatch"]">@item["exportbatch"]</option>
+                            }
+                        }
+                    }
+                </select>
+                <a href="javascript:;" id="waybill_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+            </div>
+        }
+    </div>
+    <div id="waybill_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="waybill_InfoList"></table>
+    </div>
+</div>
+
+<!--对话框-->
+<div id="waybill_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#waybill_dlgButtons'">
+    <form id="waybill_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 10px; padding-top: 10px;" cellspacing="7">
+            <tr>
+                <td style="text-align: right;">入仓号：</td>
+                <td>
+                    <input id="waybill_warehousingno" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align: right;">运单编号：</td>
+                <td>
+                    <input id="waybill_waybillnumber" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align: right;">结算重量：</td>
+                <td>
+                    <input id="waybill_settlementweight" required validtype="length[1,50]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">转单渠道：</td>
+                <td>
+                    <input id="waybill_singlechannel" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">收件人：</td>
+                <td>
+                    <input id="waybill_recipient" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">收件人电话：</td>
+                <td>
+                    <input id="waybill_recphone" required validtype="length[1,11]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">收件人地址：</td>
+                <td>
+                    <input id="waybill_recaddress" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">收件地城市：</td>
+                <td>
+                    <input id="waybill_reccity" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">收件地省份：</td>
+                <td>
+                    <input id="waybill_recprovince" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">收件地邮编：</td>
+                <td>
+                    <input id="waybill_recpostcode" validtype="length[1,6]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">物品名称①：</td>
+                <td>
+                    <input id="waybill_goodsname1" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">税关号①：</td>
+                <td>
+                    <input id="waybill_customsno1" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">单价①：</td>
+                <td>
+                    <input id="waybill_price1" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">单件件数①：</td>
+                <td>
+                    <input id="waybill_piecenum1" required validtype="length[1,10]" class="easyui-numberbox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">单件重量①：</td>
+                <td>
+                    <input id="waybill_pieceweight1" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>                
+                <td style="text-align:right;">物品名称②：</td>
+                <td>
+                    <input id="waybill_goodsname2" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">税关号②：</td>
+                <td>
+                    <input id="waybill_customsno2" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">单价②：</td>
+                <td>
+                    <input id="waybill_price2" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>                
+                <td style="text-align:right;">单件件数②：</td>
+                <td>
+                    <input id="waybill_piecenum2" validtype="length[1,10]" class="easyui-numberbox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">单件重量②：</td>
+                <td>
+                    <input id="waybill_pieceweight2" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">物品名称③：</td>
+                <td>
+                    <input id="waybill_goodsname3" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>                
+                <td style="text-align:right;">税关号③：</td>
+                <td>
+                    <input id="waybill_customsno3" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">单价③：</td>
+                <td>
+                    <input id="waybill_price3" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">单件件数③：</td>
+                <td>
+                    <input id="waybill_piecenum3" validtype="length[1,10]" class="easyui-numberbox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>                
+                <td style="text-align:right;">单件重量③：</td>
+                <td>
+                    <input id="waybill_pieceweight3" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2"  style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">申报价值：</td>
+                <td>
+                    <input id="waybill_declaredvalue" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">申报货币：</td>
+                <td>
+                    <input id="waybill_declaredcurrency" validtype="length[1,20]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">是否代缴关税：</td>
+                <td>
+                    <input id="waybill_ispayduty1" type="radio" name="ispayduty" value="1" /><label for="waybill_ispayduty1" >是</label><input type="radio" value="0" id="waybill_ispayduty2" name="ispayduty" /><label for="waybill_ispayduty2">否</label>
+                </td>
+                <td style="text-align:right;">保价：</td>
+                <td>
+                    <input id="waybill_insured" validtype="length[1,20]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">打单类型：</td>
+                <td>
+                    <input id="waybill_typingtype" validtype="length[1,20]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>                
+                <td style="text-align:right;">目的地：</td>
+                <td>
+                    <input id="waybill_destination" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>            
+                <td style="text-align:right;">目的网点：</td>
+                <td>
+                    <input id="waybill_destinationpoint" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">寄件人：</td>
+                <td>
+                    <input id="waybill_sender" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">寄件人电话：</td>
+                <td>
+                    <input id="waybill_sendphone" validtype="length[1,20]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">寄件人地址：</td>
+                <td>
+                    <input id="waybill_sendaddress" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;">运费：</td>
+                <td>
+                    <input id="waybill_freight" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">客户报价：</td>
+                <td>
+                    <input id="waybill_customerquotation" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+                <td style="text-align:right;" >税金：</td>
+                <td colspan="3">
+                    <input id="waybill_tax" validtype="length[1,10]" class="easyui-numberbox searchText" data-options="min:0,precision:2" style="width: 150px;" />
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="waybillid" value="" />
+    </form>
+</div>
+<div id="waybill_dlgButtons">
+    <a href="javascript:;" id="waybill_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="waybill_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script>
+    var waybillFlag = 0;
+    var queryParams = {};
+    var sortColumn = 'warehousingno', sortType = 'asc';
+
+    $(function () {
+        //$("#waybill_Panel").parent(".panel-body")[0].style.height = '800px';
+
+        LoadPagewaybillData();
+
+        //新增
+        $("#waybill_btnAdd").on("click", function () {
+            waybillFlag = 0;
+            Window.openBigDialog($("#waybill_dlg"), "添加运单信息", 'icon-add', disposeWayBill);
+            bindEventwaybill();
+        });
+
+        //修改
+        $("#waybill_btnEdit").on("click", function () {
+            waybillFlag = 1;
+            var row = $("#waybill_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEventwaybill();
+                $("#waybillid").val(row[0].oid);
+                $("#waybill_warehousingno").val(row[0].warehousingno);
+                $("#waybill_waybillnumber").val(row[0].waybillnumber);
+                $("#waybill_settlementweight").numberbox('setValue', row[0].settlementweight);
+                $("#waybill_singlechannel").val(row[0].singlechannel);
+                $("#waybill_recipient").val(row[0].recipient);
+                $("#waybill_recphone").val(row[0].recphone);
+                $("#waybill_recaddress").val(row[0].recaddress);
+                $("#waybill_reccity").val(row[0].reccity);
+                $("#waybill_recprovince").val(row[0].recprovince);
+                $("#waybill_recpostcode").val(row[0].recpostcode);
+                $("#waybill_goodsname1").val(row[0].goodsname1);
+                $("#waybill_customsno1").val(row[0].customsno1);
+                $("#waybill_price1").numberbox('setValue',row[0].price1);
+                $("#waybill_piecenum1").numberbox('setValue',row[0].piecenum1);
+                $("#waybill_pieceweight1").numberbox('setValue',row[0].pieceweight1);
+                $("#waybill_goodsname2").val(row[0].goodsname2);
+                $("#waybill_customsno2").val(row[0].customsno2);
+                $("#waybill_price2").numberbox('setValue',row[0].price2);
+                $("#waybill_piecenum2").numberbox('setValue',row[0].piecenum2);
+                $("#waybill_pieceweight2").numberbox('setValue',row[0].pieceweight2);
+                $("#waybill_goodsname3").val(row[0].goodsname3);
+                $("#waybill_price3").numberbox('setValue',row[0].price3);
+                $("#waybill_piecenum3").numberbox('setValue',row[0].piecenum3);
+                $("#waybill_pieceweight3").numberbox('setValue',row[0].pieceweight3);
+                $("#waybill_declaredvalue").numberbox('setValue',row[0].declaredvalue);
+                $("#waybill_declaredcurrency").val(row[0].declaredcurrency);
+                var ispayduty = $("input[name='ispayduty']");
+                for (var i = 0; i < ispayduty.length; i++) {
+                    $(ispayduty[i]).removeAttr("checked");
+                }
+                for (var i = 0; i < ispayduty.length; i++) {
+                    if ($(ispayduty[i]).val() == row[0].ispayduty) {
+                        $(ispayduty[i]).click();
+                        break;
+                    }
+                }
+                $("#waybill_insured").numberbox('setValue',row[0].insured);
+                $("#waybill_typingtype").val(row[0].typingtype);
+                $("#waybill_destination").val(row[0].destination);
+                $("#waybill_destinationpoint").val(row[0].destinationpoint);
+                $("#waybill_sender").val(row[0].sender);
+                $("#waybill_sendphone").val(row[0].sendphone);
+                $("#waybill_sendaddress").val(row[0].sendaddress);
+                $("#waybill_freight").numberbox('setValue',row[0].freight);
+                $("#waybill_customerquotation").numberbox('setValue',row[0].customerquotation);
+                $("#waybill_tax").numberbox('setValue',row[0].tax);
+                Window.openBigDialog($("#waybill_dlg"), "修改运单信息", 'icon-add', disposeWayBill);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+         //删除
+        $("#waybill_btnDel").on("click", function () {
+            var row = $("#waybill_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合  
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].oid)
+                        }  
+
+                        $.post('@Url.Action("Delete", "WayBill")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                LoadPagewaybillData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //生成
+        $("#waybill_btnGenerate").on("click", function () {
+            if ($("#waybill_InfoList").datagrid("getRows").length > 0) {
+                $.messager.confirm("提示", "您确定生成吗？", function (data) {
+                    if (data) {
+                        $.messager.progress({
+                            text: '数据处理中...'
+                        });
+                        $.post('@Url.Action("Generate", "WayBill")', { importBatch: $("#sel_import_bitch").val(), exportBatch: $("#sel_bitch").val(), searchText: $("#waybill_search_text").val() }, function (data1) {
+                            $.messager.progress("close");
+                            $.messager.alert("提示", data1.Msg);
+
+                            if (data1.Status) {
+                                LoadPagewaybillData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示", "暂无数据可生成！");
+            }
+        });
+
+        //查询
+        $("#waybill_btnQuery").on("click", function () {
+            LoadPagewaybillData();
+        });
+
+        //导入
+        var options = {
+            beforeSubmit: showRequest,
+            error: showError,
+            success: showResponse
+        };
+        $("#frm_waybill").submit(function () {
+            $(this).ajaxSubmit(options);
+            return false;
+        });
+        //导入
+        $("#waybill_linkImport").click(function () {
+            $("#waybill_btnImport").trigger("click");
+        });
+
+        ///禁止回车触发form提交
+        $("#waybill_search_text").keypress(function (event) {
+            var e = event || window.event;
+            if (e.keyCode == 13) {
+                return false;
+            }
+        });
+
+        //导出
+        $("#waybill_btnExport").click(function () {
+            var url = '@Url.Action("ExportExcel", "WayBill")?importBatch=' + queryParams.importBatch + '&exportBatch=' + queryParams.exportBatch + "&searchText=" + queryParams.searchText + "&sort=" + sortColumn + "&order=" + sortType;
+            if ($("#waybill_InfoList").datagrid("getRows").length > 0) {
+                window.location = url;
+            }
+            else {
+                $.messager.alert("提示", "暂无数据可导出！");
+            }
+        });
+
+        //导出税关号为空的物品名称数据
+        $("#waybill_btnFailExport").click(function () {
+            var url = '@Url.Action("ExportFailExcel", "WayBill")';
+            window.location = url;
+        });
+    });
+
+    function showRequest(formData, jqForm, options) {
+        var file = $("#wb_file");
+        if (file.val() === '') {
+            $.messager.alert("提示", "请选择文件！");
+            return false;
+        }
+        var typefile = file.val().substring(file.val().indexOf('.') + 1, file.val().length);
+        if ("xls,xlsx".indexOf(typefile.toLowerCase()) < 0) {
+            $.messager.alert("提示", "请选择正确的文件(excel文件)！");
+            return false;
+        }
+        $.messager.progress({
+            text: '数据处理中...'
+        });
+    }
+
+    function showResponse(responseText, statusText) {
+        $.messager.progress("close");
+        $("#wb_file").val("");
+
+        var json = eval(responseText);
+        if (json.Status) {
+            $.messager.alert("提示", json.Msg, "info", function () {
+                LoadPagewaybillData();
+            });
+        }
+        else {
+            $.messager.alert("提示", json.Msg);
+        }
+    }
+
+    function showError(data) {
+        $.messager.progress("close");
+        $.messager.alert("提示", '请求错误！');
+    }
+
+    var disposeWayBill = function () {
+        $("#waybill_Ok").unbind("click");
+        $("#waybill_Cancel").unbind("click");
+    };
+
+    //新增保存
+    var addDatawaybill = function () {
+        var isValid = $("#waybill_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            warehousingno: $("#waybill_warehousingno").val(),
+            waybillnumber: $("#waybill_waybillnumber").val(),
+            settlementweight: $("#waybill_settlementweight").val(),
+            singlechannel: $("#waybill_singlechannel").val(),
+            recipient: $("#waybill_recipient").val(),
+            recphone: $("#waybill_recphone").val(),
+            recaddress: $("#waybill_recaddress").val(),
+            reccity: $("#waybill_reccity").val(),
+            recprovince: $("#waybill_recprovince").val(),
+            recpostcode: $("#waybill_recpostcode").val(),
+            goodsname1: $("#waybill_goodsname1").val(),
+            customsno1: $("#waybill_customsno1").val(),
+            price1: $("#waybill_price1").val(),
+            piecenum1: $("#waybill_piecenum1").val(),
+            pieceweight1: $("#waybill_pieceweight1").val(),
+            goodsname2: $("#waybill_goodsname2").val(),
+            customsno2: $("#waybill_customsno2").val(),
+            price2: $("#waybill_price2").val(),
+            piecenum2: $("#waybill_piecenum2").val(),
+            pieceweight2: $("#waybill_pieceweight2").val(),
+            goodsname3: $("#waybill_goodsname3").val(),
+            customsno3: $("#waybill_customsno3").val(),
+            price3: $("#waybill_price3").val(),
+            piecenum3: $("#waybill_piecenum3").val(),
+            pieceweight3: $("#waybill_pieceweight3").val(),
+            declaredvalue: $("#waybill_declaredvalue").val(),
+            declaredcurrency: $("#waybill_declaredcurrency").val(),
+            ispayduty: $("input[name='ispayduty']:checked").val(),
+            insured: $("#waybill_insured").val(),
+            typingtype: $("#waybill_typingtype").val(),
+            destination: $("#waybill_destination").val(),
+            destinationpoint: $("#waybill_destinationpoint").val(),
+            sender: $("#waybill_sender").val(),
+            sendphone: $("#waybill_sendphone").val(),
+            sendaddress: $("#waybill_sendaddress").val(),
+            freight: $("#waybill_freight").val(),
+            customerquotation: $("#waybill_customerquotation").val(),
+            tax: $("#waybill_tax").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "WayBill")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#waybill_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPagewaybillData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+     var editDatawaybill = function () {
+         var isValid = $("#waybill_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            warehousingno: $("#waybill_warehousingno").val(),
+            waybillnumber: $("#waybill_waybillnumber").val(),
+            settlementweight: $("#waybill_settlementweight").val(),
+            singlechannel: $("#waybill_singlechannel").val(),
+            recipient: $("#waybill_recipient").val(),
+            recphone: $("#waybill_recphone").val(),
+            recaddress: $("#waybill_recaddress").val(),
+            reccity: $("#waybill_reccity").val(),
+            recprovince: $("#waybill_recprovince").val(),
+            recpostcode: $("#waybill_recpostcode").val(),
+            goodsname1: $("#waybill_goodsname1").val(),
+            customsno1: $("#waybill_customsno1").val(),
+            price1: $("#waybill_price1").val(),
+            piecenum1: $("#waybill_piecenum1").val(),
+            pieceweight1: $("#waybill_pieceweight1").val(),
+            goodsname2: $("#waybill_goodsname2").val(),
+            customsno2: $("#waybill_customsno2").val(),
+            price2: $("#waybill_price2").val(),
+            piecenum2: $("#waybill_piecenum2").val(),
+            pieceweight2: $("#waybill_pieceweight2").val(),
+            goodsname3: $("#waybill_goodsname3").val(),
+            customsno3: $("#waybill_customsno3").val(),
+            price3: $("#waybill_price3").val(),
+            piecenum3: $("#waybill_piecenum3").val(),
+            pieceweight3: $("#waybill_pieceweight3").val(),
+            declaredvalue: $("#waybill_declaredvalue").val(),
+            declaredcurrency: $("#waybill_declaredcurrency").val(),
+            ispayduty: $("input[name='ispayduty']:checked").val(),
+            insured: $("#waybill_insured").val(),
+            typingtype: $("#waybill_typingtype").val(),
+            destination: $("#waybill_destination").val(),
+            destinationpoint: $("#waybill_destinationpoint").val(),
+            sender: $("#waybill_sender").val(),
+            sendphone: $("#waybill_sendphone").val(),
+            sendaddress: $("#waybill_sendaddress").val(),
+            freight: $("#waybill_freight").val(),
+            customerquotation: $("#waybill_customerquotation").val(),
+            tax: $("#waybill_tax").val(),
+            oid: $("#waybillid").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Update", "WayBill")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#waybill_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPagewaybillData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEventwaybill = function () {
+        //确定按钮事件
+        $("#waybill_Ok").click(function () {
+            switch (waybillFlag) {
+                case 0:
+                    //新增
+                    addDatawaybill();
+                    break;
+                case 1:
+                    //修改
+                    editDatawaybill();
+                    break;
+                default:
+                    Window.closeDialog($("#waybill_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#waybill_Cancel").click(function () {
+            Window.closeDialog($("#waybill_dlg"));
+        });
+    };
+
+    //页面数据加载
+    function LoadPagewaybillData() {
+        queryParams.importBatch = $("#sel_import_bitch").val();
+        queryParams.exportBatch = $("#sel_bitch").val();
+        queryParams.searchText = $("#waybill_search_text").val();
+
+        $("#waybill_InfoList").datagrid({
+            url: "@Url.Action("GetWayBillData", "WayBill")",
+            method: "post",
+            queryParams: queryParams,
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'oid', title: 'ID', hidden: true },
+                    { field: 'waybillnumber', title: '运单编号', align: 'left', width: 135, sortable: true },
+                    { field: 'warehousingno', title: '入仓号', align: 'left', width: 135, sortable: true },
+                    { field: 'settlementweight', title: '结算重量', align: 'left', width: 85, sortable: true },
+                    { field: 'singlechannel', title: '转单渠道', align: 'left', width: 85, sortable: true },
+                    { field: 'recipient', title: '收件人', align: 'left', width: 85, sortable: true },
+                    { field: 'recphone', title: '收件人电话', align: 'left', width: 125, sortable: true },
+                    { field: 'recaddress', title: '收件地址', align: 'left', width: 475, sortable: true },
+                    { field: 'reccity', title: '收件地城市', align: 'left', width: 125, sortable: true },
+                    { field: 'recprovince', title: '收件地省份', align: 'left', width: 125, sortable: true },
+                    { field: 'recpostcode', title: '收件地邮编', align: 'left', width: 125, sortable: true },
+                    { field: 'goodsname1', title: '物品名称①', align: 'left', width: 125, sortable: true },
+                    { field: 'customsno1', title: '税关号①', align: 'left', width: 125, sortable: true },
+                    { field: 'price1', title: '单价①', align: 'left', width: 85, sortable: true },
+                    { field: 'piecenum1', title: '单件件数①', align: 'left', width: 85, sortable: true },
+                    { field: 'pieceweight1', title: '单件重量①', align: 'left', width: 85, sortable: true },
+                    { field: 'goodsname2', title: '物品名称②', align: 'left', width: 125, sortable: true },
+                    { field: 'customsno2', title: '税关号②', align: 'left', width: 125, sortable: true },
+                    { field: 'price2', title: '单价②', align: 'left', width: 85, sortable: true },
+                    { field: 'piecenum2', title: '单件件数②', align: 'left', width: 85, sortable: true },
+                    { field: 'pieceweight2', title: '单件重量②', align: 'left', width: 85, sortable: true },
+                    { field: 'goodsname3', title: '物品名称③', align: 'left', width: 125, sortable: true },
+                    { field: 'customsno3', title: '税关号③', align: 'left', width: 125, sortable: true },
+                    { field: 'price3', title: '单价③', align: 'left', width: 85, sortable: true },
+                    { field: 'piecenum3', title: '单件件数③', align: 'left', width: 85, sortable: true },
+                    { field: 'pieceweight3', title: '单件重量③', align: 'left', width: 85, sortable: true },
+                    { field: 'declaredvalue', title: '申报价值', align: 'left', width: 85, sortable: true },
+                    { field: 'declaredcurrency', title: '申报货币', align: 'left', width: 85, sortable: true },
+                    {
+                        field: 'ispayduty', title: '是否代缴关税', align: 'left', width: 115, sortable: true, formatter: function (value, i, row) {
+                            return value == 1 ? "是":"否";
+                        }
+                    },
+                    { field: 'insured', title: '保价', align: 'left', width: 85, sortable: true },
+                    { field: 'typingtype', title: '打单类型', align: 'left', width: 85, sortable: true },
+                    { field: 'destination', title: '目的地', align: 'left', width: 85, sortable: true },
+                    { field: 'destinationpoint', title: '目的网点', align: 'left', width: 85, sortable: true },
+                    { field: 'sender', title: '寄件人', align: 'left', width: 85, sortable: true },
+                    { field: 'sendphone', title: '寄件人电话', align: 'left', width: 125, sortable: true },
+                    { field: 'sendaddress', title: '寄件地址', align: 'left', width: 225, sortable: true },
+                    { field: 'freight', title: '运费', align: 'left', width: 85, sortable: true },
+                    { field: 'customerquotation', title: '客户报价', align: 'left', width: 85, sortable: true },
+                    { field: 'tax', title: '税金', align: 'left', width: 85, sortable: true },
+                    { field: 'phonecount', title: 'time', align: 'left', width: 65, sortable: true },
+                    { field: 'importbatch', title: '导入批次', align: 'left', width: 195, sortable: true },
+                    { field: 'exportbatch', title: '导出批次', align: 'left', width: 195, sortable: true }
+                ]
+            ],
+            pagination: true,
+            pageNumber: 1,
+            pageSize: 20,
+            pageList: [20, 50, 100, 500],
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg: "数据加载中....",
+            onLoadSuccess: function (data) {
+                sortColumn = data.sortColumn;
+                sortType = data.sortType
+
+                $(this).datagrid("fixRowNumber");
+            }
+        });
+    }
+</script>

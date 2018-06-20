@@ -1,0 +1,362 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    .select {
+        border-radius: 5px;
+        height: 22px;
+        line-height: 22px;
+        border: 1px solid #95B8E7;
+    }
+</style>
+
+<div id="prohibited_Panel">
+    <div id="prohibited_Header" style="padding: 5px;">
+    @using (Html.BeginForm("Import", "Prohibited", FormMethod.Post, new { id = "frm_prohibited", enctype = "multipart/form-data" }))
+    {
+        <div id="prohibited_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+            <a href="javascript:;" id="prohibited_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+            <a href="javascript:;" id="prohibited_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+            <a href="javascript:;" id="prohibited_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+            <input type="file" id="p_file" name="p_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+            <input type="submit" id="prohibited_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
+            <a href="javascript:;" id="prohibited_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
+            <a href="javascript:;" id="prohibited_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出</a>
+            <label for="prohibited_search_name" style="margin-left: 10px;">名称：</label>
+            <input id="prohibited_search_name" name="prohibited_search_name" class="select searchText" style="width: 120px" maxlength="20" />
+            <label for="prohibited_search_type" style="margin-left: 10px;">类型：</label>
+            <select id="prohibited_search_type" class="select" panelheight="auto">
+                <option value="0">请选择</option>
+                <option value="1">禁运物品</option>
+                <option value="2">收件人地址</option>
+                <option value="3">收件人名称</option>
+            </select>
+            <a href="javascript:;" id="prohibited_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+        </div>
+     }
+    </div>
+    <div id="prohibited_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="prohibited_InfoList"></table>
+    </div>
+</div>
+<!--对话框-->
+<div id="prohibited_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#prohibited_dlgButtons'">
+    <form id="prohibited_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 30px; " cellspacing="7">           
+            <tr>
+                <td style="text-align: right;">名称：</td>
+                <td>
+                    <input id="prohibited_name" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">类型</td>
+                <td>
+                    <select id="prohibited_type" class="select" panelheight="auto">
+                        <option value="1">禁运物品</option>
+                        <option value="2">收件人地址</option>
+                        <option value="3">收件人名称</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">备注：</td>
+                <td>
+                    <textarea id="prohibited_remark" rows="3" cols="30" style="resize:none;"></textarea>
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="prohibitedid" value="" />
+    </form>
+</div>
+<div id="prohibited_dlgButtons">
+    <a href="javascript:;" id="prohibited_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="prohibited_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script>
+    var prohibitedFlag = 0;
+    var queryParams = {};
+    var sortColumn = 'pid', sortType = 'asc';
+
+    $(function () {
+        //$("#prohibited_Panel").parent(".panel-body")[0].style.height = '800px';
+
+        LoadPageProhibitedData();
+
+        //新增
+        $("#prohibited_btnAdd").on("click", function () {
+            prohibitedFlag = 0;
+            Window.openSmallDialog($("#prohibited_dlg"), "添加禁运信息", 'icon-add', disposeProhibited);
+            bindEventProhibited();
+        });
+
+        //修改
+        $("#prohibited_btnEdit").on("click", function () {
+            prohibitedFlag = 1;
+            var row = $("#prohibited_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEventProhibited();
+                $("#prohibitedid").val(row[0].pid);
+                $("#prohibited_name").val(row[0].pname);
+                $("#prohibited_remark").val(row[0].premark);
+                $("#prohibited_type").val(row[0].type);
+                Window.openSmallDialog($("#prohibited_dlg"), "修改禁运信息", 'icon-add', disposeProhibited);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+         //删除
+        $("#prohibited_btnDel").on("click", function () {
+            var row = $("#prohibited_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合  
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].pid)
+                        }  
+
+                        $.post('@Url.Action("Delete", "Prohibited")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                LoadPageProhibitedData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //查询
+        $("#prohibited_btnQuery").on("click", function () {
+            LoadPageProhibitedData();
+        });
+
+        //导入
+        var options = {
+            beforeSubmit: showRequest,
+            error: showError,
+            success: showResponse
+        };
+        $("#frm_prohibited").submit(function () {
+            $(this).ajaxSubmit(options);
+            return false;
+        });
+        //导入
+        $("#prohibited_linkImport").click(function () {
+            $("#prohibited_btnImport").trigger("click");
+        });
+
+        ///禁止回车触发form提交
+        $("#prohibited_search_name").keypress(function (event) {
+            var e = event || window.event;
+            if (e.keyCode == 13) {
+                return false;
+            } 
+        });
+
+        //导出
+        $("#prohibited_btnExport").click(function () {
+            var url = '@Url.Action("ExportExcel", "Prohibited")?name=' + queryParams.name + "&type=" + queryParams.type + "&sort=" + sortColumn + "&order=" + sortType;
+            if ($("#prohibited_InfoList").datagrid("getRows").length > 0) {
+                window.location = url;
+            }
+            else {
+                $.messager.alert("提示", "暂无数据可导出！");
+            }
+        });
+    });
+    
+    function showRequest(formData, jqForm, options) {       
+        var file = $("#p_file");
+        if (file.val() === '') {
+            $.messager.alert("提示", "请选择文件！");
+            return false;
+        }
+        var typefile = file.val().substring(file.val().indexOf('.') + 1, file.val().length);
+        if ("xls,xlsx".indexOf(typefile.toLowerCase()) < 0) {
+            $.messager.alert("提示", "请选择正确的文件(excel文件)！");
+            return false;
+        }
+        $.messager.progress({
+            text: '数据处理中...'
+        });
+    }
+
+    function showResponse(responseText, statusText) {
+        $.messager.progress("close");
+        $("#p_file").val("");
+
+        var json = eval(responseText);
+        if (json.Status) {
+            $.messager.alert("提示", json.Msg, "info", function () {
+                LoadPageProhibitedData();
+            });
+        }
+        else {
+            $.messager.alert("提示", json.Msg);
+        }
+    }
+
+    function showError(data) {
+        $.messager.progress("close");
+        $.messager.alert("提示", '请求错误！');
+    }
+
+    var disposeProhibited = function () {
+        $("#prohibited_Ok").unbind("click");
+        $("#prohibited_Cancel").unbind("click");
+    };
+
+    //新增保存
+     var addDataProhibited = function () {
+         var isValid = $("#prohibited_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            pname: $("#prohibited_name").val(),
+            premark: $("#prohibited_remark").val(),
+            type: $("#prohibited_type").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "Prohibited")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#prohibited_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageProhibitedData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+     var editDataProhibited = function () {
+         var isValid = $("#prohibited_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            pname: $("#prohibited_name").val(),
+            premark: $("#prohibited_remark").val(),
+            type: $("#prohibited_type").val(),
+            pid: $("#prohibitedid").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Update", "Prohibited")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#prohibited_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageProhibitedData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEventProhibited = function () {
+        //确定按钮事件
+        $("#prohibited_Ok").click(function () {
+            switch (prohibitedFlag) {
+                case 0:
+                    //新增
+                    addDataProhibited();
+                    break;
+                case 1:
+                    //修改
+                    editDataProhibited();
+                    break;
+                default:
+                    Window.closeDialog($("#prohibited_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#prohibited_Cancel").click(function () {
+            Window.closeDialog($("#prohibited_dlg"));
+        });
+    };
+
+    //页面数据加载
+    function LoadPageProhibitedData() {
+        queryParams.name = $("#prohibited_search_name").val();
+        queryParams.type = $("#prohibited_search_type").val();
+
+        $("#prohibited_InfoList").datagrid({
+            url: "@Url.Action("GetProhibitedData", "Prohibited")",
+            method: "post",
+            queryParams: queryParams,
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'pid', title: 'pid', hidden: true },
+                    { field: 'pname', title: '名称', width: 150, align: 'center', sortable: true },
+                    { field: 'premark', title: '备注', width: 250, align: 'left', sortable: true },
+                    {
+                        field: 'type', title: '类型', width: 110, align: 'center', sortable: true, formatter: function(value, row,index) {
+                            return value == 1 ? "禁运物品" : (value == 2 ? "收件人地址" : (value == 3 ? "收件人名称" : ""));
+                        }
+                    },
+                    { field: 'created', title: '创建人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'created_time', title: '创建时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                    { field: 'updated', title: '修改人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'updated_time', title: '修改时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                ]
+            ],
+            pagination: true,
+            pageNumber: 1,
+            pageSize: 20,
+            pageList: [20, 50, 100, 500],
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg: "数据加载中....",
+            onLoadSuccess: function (data) {
+                sortColumn = data.sortColumn;
+                sortType = data.sortType
+
+                $(this).datagrid("fixRowNumber");
+            }
+        });
+    }
+</script>

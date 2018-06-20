@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>运单管理系统 | @ViewBag.Title</title>
+    <link href="~/Content/themes/default/easyui.css" rel="stylesheet" />
+    <link href="~/Content/themes/icon.css" rel="stylesheet" />
+    <link href="~/Content/site.css" rel="stylesheet" />
+    @RenderSection("styles", required: false)
+    <script src="~/Scripts/jquery-1.12.4.min.js"></script>
+    <script src="~/Scripts/jquery.easyui-1.4.5.min.js"></script>
+    <script src="~/Scripts/locale/easyui-lang-zh_CN.js"></script>
+    <script src="~/Scripts/custom.js"></script>
+    <script src="~/Scripts/jquery.form.js"></script>
+</head>
+<body class="easyui-layout">
+	<input type="hidden" id="LoginUrl" value="@Url.Action("Login", "Auth")" />
+    @RenderBody()    
+    <script>
+        $.ajaxSetup({
+            complete: function (xhr, textStatus) {
+                if (xhr.status == 405) {
+                    window.location = "@Url.Action("Login", "Auth")"; //返回登录
+                    return;
+                }
+            }
+        });
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

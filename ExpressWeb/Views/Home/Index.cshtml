@@ -1,0 +1,129 @@
+﻿@{
+    ViewBag.Title = "Home";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    #LeftTree li {
+        margin-bottom: 2px;
+    }
+</style>
+
+<!-- 头部 -->
+<div region="north" title="头部" split="true" noheader="true" style="height: 80px; background-image: url(/Content/themes/default/images/bg.png); overflow: hidden; position: relative;">
+    <div>
+        <div class="logo" id="fot">运单管理系统</div>
+        <div class="logout">您好，@ExpressWeb.Authorizes.Authentication.WebAccount.EmployeeName <a href="Javascript:void(0);" id="logout" style="color:#ffffff;margin-left:20px;">退出</a></div>
+    </div>
+</div>
+
+<!-- 左侧菜单 -->
+<div id="LeftTree" region="west" split="true" title="导航" iconcls="icon-nav" style="width:200px; overflow:hidden;"></div>
+
+<!-- 右侧主体 -->
+<div region="center" id="tabs" class="easyui-tabs"></div>
+
+<!-- 底部 -->
+<div region="south" title="South Title" split="true" noheader="true" style="height: 45px; line-height: 45px; text-align: center; overflow: hidden;">
+    欢迎来到运单管理系统
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $("#tabs").tabs({
+            width: $("#tabs").parent().width(),
+            height: $("#tabs").parent().height()
+        }); 
+
+        $('#tabs').tabs('resize', {
+            plain: false,
+            boder: false,
+            width: $(window).width(),
+            height: $(window).height() - 50
+        });   
+        loadMenuTree();
+    });
+
+    //加载左侧菜单
+    function loadMenuTree() {
+        $("#LeftTree").tree({
+            lines: true,
+            url: "@Url.Action("LeftMenu", "Home")"
+        });
+    }
+
+    //打开tab页
+    function OpenTabs(title, url, iconcls) {
+        var tb = $("#tabs");
+        if (tb.tabs("exists", title)) {
+            tb.tabs("select", title);
+        }
+        else {
+            if (iconcls === "" || iconcls == null) {
+                iconcls = "icon-epay";
+            }
+            tb.tabs('add', {
+                title: title,
+                iconCls: iconcls,
+                closable: true,
+                fit: true,
+                href: url
+            });
+        }
+    }
+
+    //更新title的tab页
+    function UpdateTabs(title, url, iconcls) {
+        var tb = $("#tabs");
+        if (iconcls === "") {
+            iconcls = $(".tabs-selected>.tabs-inner>span:last-child").attr("class");
+        }
+        var tab = $('#tabs').tabs('getSelected');
+        if (iconcls === "" || iconcls == null) {
+            iconcls = "icon-epay";
+        }
+        if (tb.tabs("exists", title)) {
+            tb.tabs('update', {
+                tab: tab,
+                options: {
+                    title: title,
+                    iconCls: iconcls,
+                    closable: true,
+                    fit: true,
+                    href: url
+                }
+            });
+        }
+        else {
+            if (title === '') {
+                title = tab.panel('options').title;
+                tb.tabs('update', {
+                    tab: tab,
+                    options: {
+                        title: title,
+                        iconCls: iconcls,
+                        closable: true,
+                        fit: true,
+                        href: url
+                    }
+                });
+            }
+        }
+    }
+
+    //退出
+    $("#logout").on("click", function () {
+        $.messager.confirm("提示", "您确定要退出吗？", function (data) {
+            if (data) {
+                $.post('@Url.Action("Logout", "Auth")', {}, function (data1) {
+                    if (data1) {
+                        if (data1.Status) {
+                            window.location.href = '@Url.Action("Login", "Auth")';
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
+

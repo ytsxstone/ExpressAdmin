@@ -1,0 +1,520 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    .select {
+        border-radius: 5px;
+        height: 22px;
+        line-height: 22px;
+        border: 1px solid #95B8E7;
+    }
+</style>
+
+<div id="relation_Panel">
+    <div id="relation_Header" style="padding: 5px;">
+        @using (Html.BeginForm("Import", "Relation", FormMethod.Post, new { id = "frm_relation", enctype = "multipart/form-data" }))
+        {
+            <div id="relation_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+                <a href="javascript:;" id="relation_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+                <a href="javascript:;" id="relation_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+                <a href="javascript:;" id="relation_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+                <input type="file" id="gr_file" name="gr_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+                <input type="submit" id="relation_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
+                <a href="javascript:;" id="relation_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
+                <a href="javascript:;" id="relation_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出</a>
+                <label for="relation_search_originalname" style="margin-left: 10px;">原物品名称：</label>
+                <input id="relation_search_originalname" name="relation_search_originalname" class="select searchText" style="width: 120px" maxlength="20" />
+                <label for="relation_search_taxnumber" style="margin-left: 10px;">商品税号：</label>
+                <input id="relation_search_taxnumber" name="relation_search_taxnumber" class="select searchText" style="width: 120px" maxlength="20" />
+                <label for="relation_search_newname1" style="margin-left: 10px;">新物品名称1：</label>
+                <input id="relation_search_newname1" name="relation_search_newname1" class="select searchText" style="width: 120px" maxlength="20" />
+                <a href="javascript:;" id="relation_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+            </div>
+        }
+    </div>
+    <div id="relation_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="relation_InfoList"></table>
+    </div>
+</div>
+<!--对话框-->
+<div id="relation_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#relation_dlgButtons'">
+    <form id="relation_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 10px; padding-top: 10px;" cellspacing="7">
+            <tr>
+                <td style="text-align: right;">原商品名称：</td>
+                <td>
+                    <input id="relation_originalname" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align: right;">商品税号：</td>
+                <td>
+                    <input id="relation_taxnumber" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称1：</td>
+                <td>
+                    <input id="relation_newname1" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称2：</td>
+                <td>
+                    <input id="relation_newname2" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称3：</td>
+                <td>
+                    <input id="relation_newname3" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称4：</td>
+                <td>
+                    <input id="relation_newname4" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称5：</td>
+                <td>
+                    <input id="relation_newname5" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称6：</td>
+                <td>
+                    <input id="relation_newname6" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称7：</td>
+                <td>
+                    <input id="relation_newname7" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称8：</td>
+                <td>
+                    <input id="relation_newname8" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称9：</td>
+                <td>
+                    <input id="relation_newname9" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称10：</td>
+                <td>
+                    <input id="relation_newname10" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称11：</td>
+                <td>
+                    <input id="relation_newname11" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称12：</td>
+                <td>
+                    <input id="relation_newname12" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称13：</td>
+                <td>
+                    <input id="relation_newname13" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称14：</td>
+                <td>
+                    <input id="relation_newname14" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称15：</td>
+                <td>
+                    <input id="relation_newname15" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称16：</td>
+                <td>
+                    <input id="relation_newname16" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称17：</td>
+                <td>
+                    <input id="relation_newname17" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称18：</td>
+                <td>
+                    <input id="relation_newname18" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">新物品名称19：</td>
+                <td>
+                    <input id="relation_newname19" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+                <td style="text-align:right;">新物品名称20：</td>
+                <td>
+                    <input id="relation_newname20" validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="relationid" value="" />
+    </form>
+</div>
+<div id="relation_dlgButtons">
+    <a href="javascript:;" id="relation_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="relation_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script>
+    var relationFlag = 0;
+    var queryParams = {};
+    var sortColumn = 'rid', sortType = 'asc';
+
+    $(function () {
+        //$("#relation_Panel").parent(".panel-body")[0].style.height = '800px';
+
+        LoadPageRelationData();
+
+        //新增
+        $("#relation_btnAdd").on("click", function () {
+            relationFlag = 0;
+            Window.openMiddleDialog($("#relation_dlg"), "添加商品关系信息", 'icon-add', disposeRelation);
+            bindEventRelation();
+        });
+
+        //修改
+        $("#relation_btnEdit").on("click", function () {
+            relationFlag = 1;
+            var row = $("#relation_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEventRelation();
+                $("#relationid").val(row[0].rid);
+                $("#relation_originalname").val(row[0].originalname);
+                $("#relation_taxnumber").val(row[0].taxnumber);
+                $("#relation_newname1").val(row[0].newname1);
+                $("#relation_newname2").val(row[0].newname2);
+                $("#relation_newname3").val(row[0].newname3);
+                $("#relation_newname4").val(row[0].newname4);
+                $("#relation_newname5").val(row[0].newname5);
+                $("#relation_newname6").val(row[0].newname6);
+                $("#relation_newname7").val(row[0].newname7);
+                $("#relation_newname8").val(row[0].newname8);
+                $("#relation_newname9").val(row[0].newname9);
+                $("#relation_newname10").val(row[0].newname10);
+                $("#relation_newname11").val(row[0].newname11);
+                $("#relation_newname12").val(row[0].newname12);
+                $("#relation_newname13").val(row[0].newname13);
+                $("#relation_newname14").val(row[0].newname14);
+                $("#relation_newname15").val(row[0].newname15);
+                $("#relation_newname16").val(row[0].newname16);
+                $("#relation_newname17").val(row[0].newname17);
+                $("#relation_newname18").val(row[0].newname18);
+                $("#relation_newname19").val(row[0].newname19);
+                $("#relation_newname20").val(row[0].newname20);
+                Window.openMiddleDialog($("#relation_dlg"), "修改商品关系信息", 'icon-add', disposeRelation);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+         //删除
+        $("#relation_btnDel").on("click", function () {
+            var row = $("#relation_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合  
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].rid)
+                        }  
+
+                        $.post('@Url.Action("Delete", "Relation")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                LoadPageRelationData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //查询
+        $("#relation_btnQuery").on("click", function () {
+            LoadPageRelationData();
+        });
+
+        //导入
+        var options = {
+            beforeSubmit: showRequest,
+            error: showError,
+            success: showResponse
+        };
+        $("#frm_relation").submit(function () {
+            $(this).ajaxSubmit(options);
+            return false;
+        });
+        //导入
+        $("#relation_linkImport").click(function () {
+            $("#relation_btnImport").trigger("click");
+        });
+
+        ///禁止回车触发form提交
+        $("#relation_search_originalname,#relation_search_taxnumber,#relation_search_newname1").keypress(function (event) {
+            var e = event || window.event;
+            if (e.keyCode == 13) {
+                return false;
+            }
+        });  
+
+        //导出
+        $("#relation_btnExport").click(function () {
+            var url = '@Url.Action("ExportExcel", "Relation")?originalname=' + queryParams.originalname + "&taxnumber=" + queryParams.taxnumber + "&newname1=" + queryParams.newname1 + "&sort=" + sortColumn + "&order=" + sortType;
+            if ($("#relation_InfoList").datagrid("getRows").length > 0) {
+                window.location = url;
+            }
+            else {
+                $.messager.alert("提示", "暂无数据可导出！");
+            }
+        });
+    });
+
+    function showRequest(formData, jqForm, options) {
+        var file = $("#gr_file");
+        if (file.val() === '') {
+            $.messager.alert("提示", "请选择文件！");
+            return false;
+        }
+        var typefile = file.val().substring(file.val().indexOf('.') + 1, file.val().length);
+        if ("xls,xlsx".indexOf(typefile.toLowerCase()) < 0) {
+            $.messager.alert("提示", "请选择正确的文件(excel文件)！");
+            return false;
+        }
+        $.messager.progress({
+            text: '数据处理中...'
+        });
+    }
+
+    function showResponse(responseText, statusText) {
+        $.messager.progress("close");
+        $("#p_file").val("");
+
+        var json = eval(responseText);
+        if (json.Status) {
+            $.messager.alert("提示", json.Msg, "info", function () {
+                LoadPageRelationData();
+            });
+        }
+        else {
+            $.messager.alert("提示", json.Msg);
+        }
+    }
+
+    function showError(data) {
+        $.messager.progress("close");
+        $.messager.alert("提示", '请求错误！');
+    }
+
+    var disposeRelation = function () {
+        $("#relation_Ok").unbind("click");
+        $("#relation_Cancel").unbind("click");
+    };
+
+    //新增保存
+     var addDataRelation = function () {
+         var isValid = $("#relation_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            originalname: $("#relation_originalname").val(),
+            taxnumber: $("#relation_taxnumber").val(),
+            newname1: $("#relation_newname1").val(),
+            newname2: $("#relation_newname2").val(),
+            newname3: $("#relation_newname3").val(),
+            newname4: $("#relation_newname4").val(),
+            newname5: $("#relation_newname5").val(),
+            newname6: $("#relation_newname6").val(),
+            newname7: $("#relation_newname7").val(),
+            newname8: $("#relation_newname8").val(),
+            newname9: $("#relation_newname9").val(),
+            newname10: $("#relation_newname10").val(),
+            newname11: $("#relation_newname11").val(),
+            newname12: $("#relation_newname12").val(),
+            newname13: $("#relation_newname13").val(),
+            newname14: $("#relation_newname14").val(),
+            newname15: $("#relation_newname15").val(),
+            newname16: $("#relation_newname16").val(),
+            newname17: $("#relation_newname17").val(),
+            newname18: $("#relation_newname18").val(),
+            newname19: $("#relation_newname19").val(),
+            newname20: $("#relation_newname20").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "Relation")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#relation_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageRelationData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+     var editDataRelation = function () {
+         var isValid = $("#relation_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            originalname: $("#relation_originalname").val(),
+            taxnumber: $("#relation_taxnumber").val(),
+            newname1: $("#relation_newname1").val(),
+            newname2: $("#relation_newname2").val(),
+            newname3: $("#relation_newname3").val(),
+            newname4: $("#relation_newname4").val(),
+            newname5: $("#relation_newname5").val(),
+            newname6: $("#relation_newname6").val(),
+            newname7: $("#relation_newname7").val(),
+            newname8: $("#relation_newname8").val(),
+            newname9: $("#relation_newname9").val(),
+            newname10: $("#relation_newname10").val(),
+            newname11: $("#relation_newname11").val(),
+            newname12: $("#relation_newname12").val(),
+            newname13: $("#relation_newname13").val(),
+            newname14: $("#relation_newname14").val(),
+            newname15: $("#relation_newname15").val(),
+            newname16: $("#relation_newname16").val(),
+            newname17: $("#relation_newname17").val(),
+            newname18: $("#relation_newname18").val(),
+            newname19: $("#relation_newname19").val(),
+            newname20: $("#relation_newname20").val(),
+            rid: $("#relationid").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Update", "Relation")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#relation_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageRelationData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEventRelation = function () {
+        //确定按钮事件
+        $("#relation_Ok").click(function () {
+            switch (relationFlag) {
+                case 0:
+                    //新增
+                    addDataRelation();
+                    break;
+                case 1:
+                    //修改
+                    editDataRelation();
+                    break;
+                default:
+                    Window.closeDialog($("#relation_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#relation_Cancel").click(function () {
+            Window.closeDialog($("#relation_dlg"));
+        });
+    };
+
+    //页面数据加载
+    function LoadPageRelationData() {
+        queryParams.originalname = $("#relation_search_originalname").val();
+        queryParams.taxnumber = $("#relation_search_taxnumber").val();
+        queryParams.newname1 = $("#relation_search_newname1").val();
+
+        $("#relation_InfoList").datagrid({
+            url: "@Url.Action("GetGoodRelationData", "Relation")",
+            method: "post",
+            queryParams: queryParams,
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'rid', title: 'rid', hidden: true },
+                    { field: 'originalname', title: '原物品名称', width: 100, align: 'center', sortable: true },
+                    { field: 'taxnumber', title: '商品税号', width: 100, align: 'center', sortable: true },
+                    { field: 'newname1', title: '新物品名称1', width: 100, align: 'center', sortable: true },
+                    { field: 'newname2', title: '新物品名称2', width: 100, align: 'center', sortable: true },
+                    { field: 'newname3', title: '新物品名称3', width: 100, align: 'center', sortable: true },
+                    { field: 'newname4', title: '新物品名称4', width: 100, align: 'center', sortable: true },
+                    { field: 'newname5', title: '新物品名称5', width: 100, align: 'center', sortable: true },
+                    { field: 'newname6', title: '新物品名称6', width: 100, align: 'center', sortable: true },
+                    { field: 'newname7', title: '新物品名称7', width: 100, align: 'center', sortable: true },
+                    { field: 'newname8', title: '新物品名称8', width: 100, align: 'center', sortable: true },
+                    { field: 'newname9', title: '新物品名称9', width: 100, align: 'center', sortable: true },
+                    { field: 'newname10', title: '新物品名称10', width: 100, align: 'center', sortable: true },
+                    { field: 'newname11', title: '新物品名称11', width: 100, align: 'center', sortable: true },
+                    { field: 'newname12', title: '新物品名称12', width: 100, align: 'center', sortable: true },
+                    { field: 'newname13', title: '新物品名称13', width: 100, align: 'center', sortable: true },
+                    { field: 'newname14', title: '新物品名称14', width: 100, align: 'center', sortable: true },
+                    { field: 'newname15', title: '新物品名称15', width: 100, align: 'center', sortable: true },
+                    { field: 'newname16', title: '新物品名称16', width: 100, align: 'center', sortable: true },
+                    { field: 'newname17', title: '新物品名称17', width: 100, align: 'center', sortable: true },
+                    { field: 'newname18', title: '新物品名称18', width: 100, align: 'center', sortable: true },
+                    { field: 'newname19', title: '新物品名称19', width: 100, align: 'center', sortable: true },
+                    { field: 'newname20', title: '新物品名称20', width: 100, align: 'center', sortable: true },
+                    { field: 'created', title: '创建人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'created_time', title: '创建时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                    { field: 'updated', title: '修改人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'updated_time', title: '修改时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                ]
+            ],
+            pagination: true,
+            pageNumber: 1,
+            pageSize: 20,
+            pageList: [20, 50, 100, 500],
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg: "数据加载中....",
+            onLoadSuccess: function (data) {
+                sortColumn = data.sortColumn;
+                sortType = data.sortType
+
+                $(this).datagrid("fixRowNumber");
+            }
+        });
+    }
+</script>

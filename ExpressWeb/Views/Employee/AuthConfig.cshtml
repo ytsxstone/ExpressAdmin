@@ -1,0 +1,114 @@
+﻿@{
+    Layout = null;
+}
+
+<style type="text/css">
+    #ea_emp {
+        margin-top:40px;
+        margin-left:50px;
+    }
+    .dv {
+        float: left;
+        width: 200px;
+    }
+    .liHover {
+        background: #E0ECFF;
+    }
+    ul li {
+        cursor:pointer;
+        margin-top:5px;
+    }
+    .dvMenu{
+        height:30px;
+        line-height:30px;
+    }
+    #dv_left, #dv_right {
+        margin-top:20px;
+    }
+    #btn_save {
+        cursor:pointer;
+    }
+</style>
+
+<div id="ea_emp">
+    <div><input type="button" id="btn_save" value="保存" /></div>
+    <div id="dv_left" class="dv">
+        <fieldset>
+        <legend>员工列表</legend>
+        <ul id="emp"></ul>
+        </fieldset>
+    </div>
+    <div id="dv_right" class="dv">
+        <fieldset>
+        <legend>菜单列表</legend>
+            <div id="authTree">
+
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var hid = 1;
+
+    $(function () {
+        //$("#ea_emp").parent(".panel-body")[0].style.height = '800px';
+
+        $.get("@Url.Action("GetEmployeeList", "Employee")", {}, function (data) {
+            if (data) {
+                var html = '';
+                var json = eval(data);
+                $.each(json, function (i, v) {
+                    i == 0 ? hid = v.id : "";
+                    html += '<li ' + (i == 0 ? 'class="liHover"' : "") + ' onclick="liClick(this,\'' + v.id + '\')">' + v.employeename + "</li>";
+                });
+                $("#emp").html(html);
+
+                GetTree(json[0].id);
+            }
+        });
+
+        //保存
+        $("#btn_save").on("click", function () {
+            var menu = $("input[name='menu']:checked");
+            var aids = '';
+            if (menu.length > 0) {
+                for (var i = 0; i < menu.length; i++) {
+                    aids += $(menu[i]).val() + ",";
+                }
+                aids = aids.substr(0, aids.length - 1);
+            }
+            $.ajax({
+                url: '@Url.Action("SaveAuthConfig", "Employee")',
+                type: 'POST',
+                data: {
+                    eid: hid,
+                    aid: aids
+                },
+                success: function (data, response, status) {
+                    $.messager.alert("提示", data.Msg);
+                }
+            });
+        });
+    });
+
+    //点击
+    function liClick(id, eid) {
+        hid = eid;
+        $(id).addClass("liHover");
+        $(id).siblings().removeClass("liHover");
+        GetTree(eid);
+    }
+
+    //查询菜单
+    function GetTree(eid) {
+        $.get("@Url.Action("GetAuthConfigByEmployeeId", "Employee")" + "?id=" + eid, function (data) {
+            var json = eval(data);
+            var html = '';
+            $.each(json, function (i, n) {
+                html += "<div class='dvMenu'><input type='checkbox' id='a_" + n.id + "' name='menu' " + (n.checked == 'True' ? "checked ='true'" : "") + " value='" + n.id + "'/><label for='a_" + n.id + "'>" + n.menuname + "</label></div>";
+            });
+            $("#authTree").html(html);
+        });
+    }
+</script>

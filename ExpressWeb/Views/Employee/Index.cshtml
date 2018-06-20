@@ -1,0 +1,252 @@
+﻿@{
+    Layout = null;
+}
+
+<div id="emp_Panel">
+    <div id="emp_Header" style="padding: 5px;">
+        <div id="emp_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+            <a href="#" id="emp_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+            <a href="#" id="emp_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+            <a href="#" id="emp_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+            <a href="#" id="emp_btnEditPwd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">重置密码</a>
+            <label for="emp_search_name" style="margin-left: 10px;">姓名：</label>
+            <input id="emp_search_name" name="emp_search_name" class="easyui-textbox searchText" style="width: 120px" maxlength="20" />
+            <a href="#" id="emp_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+        </div>
+    </div>
+    <div id="emp_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="emp_InfoList"></table>
+    </div>
+</div>
+
+<!--对话框-->
+<div id="emp_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#emp_dlgButtons'">
+    <form id="emp_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 30px; padding-top: 60px;" cellspacing="7">
+            <tr>
+                <td style="text-align: right;">账号：</td>
+                <td>
+                    <input id="emp_account" required validtype="account[3,20]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">姓名：</td>
+                <td>
+                    <input id="emp_name" required validtype="length[2,50]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">备注：</td>
+                <td>
+                    <input id="emp_desc" validtype="length[0,100]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="hid" value="" />
+    </form>
+</div>
+<div id="emp_dlgButtons">
+    <a href="javascript:;" id="emp_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="emp_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script type="text/javascript">
+    var BUTTON_FLAG = 0;
+
+    $(function () {
+       //$("#emp_Panel").parent(".panel-body")[0].style.height = '800px';
+
+        //初始化页面数据
+       loadPageData();
+
+        //新增
+        $("#emp_btnAdd").on("click", function () {
+            BUTTON_FLAG = 0;
+            Window.openSmallDialog($("#emp_dlg"), "添加员工", 'icon-add', disposeEmp);
+            bindEventEmp();
+            $("#emp_account").removeAttr("disabled");
+        });
+
+        //修改
+        $("#emp_btnEdit").on("click", function () {
+            BUTTON_FLAG = 1;
+            var row = $("#emp_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEventEmp();
+                $("#hid").val(row[0].id);
+                $("#emp_account").val(row[0].employeeaccount).attr("disabled", "disabled");
+                $("#emp_name").val(row[0].employeename);
+                $("#emp_desc").val(row[0].employeedesc);
+                Window.openSmallDialog($("#emp_dlg"), "修改员工", 'icon-add', disposeEmp);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+        //重置密码
+        $("#emp_btnEditPwd").on("click", function () {
+            var row = $("#emp_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要重置密码吗？", function (data) {
+                    if (data) {
+                        $.post('@Url.Action("ResetPassword", "Employee")', { id: row[0].id }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                loadPageData();
+                            }
+                        });
+                    }
+                });
+            } else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+        //删除
+        $("#emp_btnDel").on("click", function () {
+            var row = $("#emp_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].id)
+                        }
+
+                        $.post('@Url.Action("Delete", "Employee")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                loadPageData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //查询
+        $("#emp_btnQuery").on("click", function () {
+            loadPageData();
+        });
+    });
+
+    var disposeEmp = function () {
+        $("#emp_Ok").unbind("click");
+        $("#emp_Cancel").unbind("click");
+    };
+
+    //新增保存
+    var addDataEmp = function () {
+        var isValid = $("#emp_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            emp_account: $("#emp_account").val(),
+            emp_name: $("#emp_name").val(),
+            emp_desc: $("#emp_desc").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "Employee")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#emp_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                loadPageData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+    var editDataEmp = function () {
+        var isValid = $("#emp_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            emp_account: $("#emp_account").val(),
+            emp_name: $("#emp_name").val(),
+            emp_desc: $("#emp_desc").val(),
+            id:$("#hid").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Update", "Employee")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#emp_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                loadPageData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEventEmp = function () {
+        //确定按钮事件
+        $("#emp_Ok").click(function () {
+            switch (BUTTON_FLAG) {
+                case 0:
+                    //新增
+                    addDataEmp();
+                    break;
+                case 1:
+                    //修改
+                    editDataEmp();
+                    break;
+                default:
+                    Window.closeDialog($("#emp_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#emp_Cancel").click(function () {
+            Window.closeDialog($("#emp_dlg"));
+        });
+    };
+
+    //页面数据加载
+    function loadPageData() {
+        $("#emp_InfoList").datagrid({
+            url: "@Url.Action("GetEmployeeData", "Employee")",
+            method: "post",
+            queryParams: {
+                name: $("#emp_search_name").val()
+            },
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'id', title: 'id', hidden: true },
+                    { field: 'employeeaccount', title: '账号', width: 165, align: 'center', sortable: true },
+                    { field: 'employeename', title: '姓名', width: 165, align: 'center', sortable: true },
+                    { field: 'employeedesc', title: '备注', width: 300, align: 'left' }
+                ]
+            ],
+            pagination: false,
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg:
+            "数据加载中....",
+            onLoadSuccess: function (data) {
+                $(this).datagrid("fixRowNumber");
+            }
+        });
+    }
+</script>

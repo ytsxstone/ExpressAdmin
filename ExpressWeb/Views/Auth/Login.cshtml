@@ -1,0 +1,126 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="renderer" content="webkit" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>运单管理系统 | 登录</title>
+    <link href="~/Content/themes/default/easyui.css" rel="stylesheet" />
+    <link href="~/Content/themes/icon.css" rel="stylesheet" />
+    <link href="~/Content/login.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-1.12.4.min.js"></script>
+</head>
+<body>
+    <div class="login">
+        <div class="row-div">
+            <span class="left-span">用户名：</span>
+            <input type="text" class="txt" autocomplete="off" id="userName" />
+        </div>
+        <div class="row-div">
+            <span class="left-span">密&nbsp;&nbsp;&nbsp;码：</span>
+            <input type="password" class="txt" autocomplete="off" id="userPwd" />
+        </div>
+        <div class="row-div center">
+            <input type="button" class="btn_d margin-left" id="btnLogin" value="登录" />
+            <input type="button" class="btn_d margin-left" id="btnReset" value="重置" />
+        </div>
+    </div>
+
+    <script src="~/Scripts/jquery.easyui-1.4.5.min.js"></script>
+    <script src="~/Scripts/locale/easyui-lang-zh_CN.js"></script>
+    <script src="~/Scripts/custom.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('#btnReset').on('click', function () {
+                $('#userName').val('');
+                $('#userPwd').val('');
+            });
+            $('#btnLogin').on('click', function () {
+                CheckLogin();
+            });
+
+            //账号验证
+            $("#userName").validatebox({
+                required: true,
+                validType: 'account[3,20]',
+                missingMessage: '请输入用户名'
+            });
+            //密码验证
+            $("#userPwd").validatebox({
+                required: true,
+                validType: 'length[5,20]',
+                missingMessage: '请输入密码'
+            });
+
+            $('.validatebox-text').css('background-color', 'none');
+
+            //加载时判断验证
+            if (!$("#userName").validatebox('isValid')) {
+                $("#userName").focus();
+            }
+            else if (!$("#userPwd").validatebox('isValid')) {
+                $("#userPwd").focus();
+            }
+
+            //响应回车按钮事件
+            document.onkeydown = function (e) {
+                var ev = document.all ? window.event : e;
+                if (ev.keyCode === 13) {
+                    CheckLogin();
+                }
+            }
+        });
+
+        //登录
+        function CheckLogin() {
+            var uname = $("#userName");
+            var upwd = $("#userPwd");
+
+            if (!uname.validatebox('isValid')) {
+                uname.focus();
+            }
+            else if (!upwd.validatebox('isValid')) {
+                upwd.focus();
+            }
+            else {
+                $.ajax({
+                    url: '@Url.Action("Login", "Auth")',
+                    type: 'POST',
+                    data: {
+                        username: $.trim(uname.val()),
+                        userpwd: $.trim(upwd.val())
+                    },
+                    success: function (data, response, status) {
+                        $.messager.progress('close');
+                        if (data != null) {
+                            if (data.Status) {
+                                //成功
+                                window.location.href = '@Url.Action("Index", "Home")';
+                            }
+                            else {
+                                $.messager.alert("登录失败", "用户名或密码错误！", "warning", function () {
+                                    $("#password").select();
+                                    flg = true;
+                                });
+                            }
+                        }
+                        else {
+                            $.messager.alert("登录失败", "用户名或密码错误！", "warning", function () {
+                                $("#password").select();
+                                flg = true;
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

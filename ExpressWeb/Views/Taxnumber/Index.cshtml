@@ -1,0 +1,331 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    .select {
+        border-radius: 5px;
+        height: 22px;
+        line-height: 22px;
+        border: 1px solid #95B8E7;
+    }
+</style>
+
+<div id="taxnumber_Panel">
+    <div id="taxnumber_Header" style="padding: 5px;">
+        @using (Html.BeginForm("Import", "TaxNumber", FormMethod.Post, new { id = "frm_taxnumber", enctype = "multipart/form-data" }))
+        {
+        <div id="taxnumber_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+            <a href="javascript:;" id="taxnumber_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+            <a href="javascript:;" id="taxnumber_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+            <a href="javascript:;" id="taxnumber_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+            <input type="file" id="ptax_file" name="ptax_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+            <input type="submit" id="taxnumber_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
+            <a href="javascript:;" id="taxnumber_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
+            <a href="javascript:;" id="taxnumber_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出</a>
+            <label for="taxnumber_search_number" style="margin-left: 10px;">商品税号：</label>
+            <input id="taxnumber_search_number" name="taxnumber_search_number" class="select searchText" style="width: 120px" maxlength="20" />
+            <label for="taxnumber_search_price" style="margin-left: 10px;">完税价格：</label>
+            <input id="taxnumber_search_price" name="taxnumber_search_price" class="select searchText" style="width: 120px" maxlength="20" />
+            <label for="taxnumber_search_rate" style="margin-left: 10px;">税率：</label>
+            <input id="taxnumber_search_rate" name="taxnumber_search_rate" class="select searchText" style="width: 120px" maxlength="20" />
+            <a href="javascript:;" id="taxnumber_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+        </div>
+        }
+    </div>
+    <div id="taxnumber_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="taxnumber_InfoList"></table>
+    </div>
+</div>
+<!--对话框-->
+<div id="taxnumber_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#taxnumber_dlgButtons'">
+    <form id="taxnumber_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 30px; padding-top: 20px;" cellspacing="7">
+            <tr>
+                <td style="text-align: right;">商品税号：</td>
+                <td>
+                    <input id="taxnumber_number" required validtype="length[1,50]" class="easyui-validatebox searchText" style="width: 200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">完税价格：</td>
+                <td>
+                    <input id="taxnumber_price" required validtype="length[1,20]" class="easyui-numberbox searchText" style="width: 200px;" />&nbsp;(RMB)
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">税率：</td>
+                <td>
+                    <input id="taxnumber_rate" required validtype="length[1,10]" class="easyui-numberbox searchText" style="width: 200px;" />&nbsp;%
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="taxnumberid" value="" />
+    </form>
+</div>
+<div id="taxnumber_dlgButtons">
+    <a href="javascript:;" id="taxnumber_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="taxnumber_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script>
+    var taxnumberFlag = 0;
+    var queryParams = {};
+    var sortColumn = 'pid', sortType = 'asc';
+
+    $(function () {
+        //$("#taxnumber_Panel").parent(".panel-body")[0].style.height = '800px';
+
+        LoadPageTaxNumberData();
+
+        //新增
+        $("#taxnumber_btnAdd").on("click", function () {
+            taxnumberFlag = 0;
+            Window.openSmallDialog($("#taxnumber_dlg"), "添加商品税号信息", 'icon-add', disposeTaxNumber);
+            bindEventTaxNumber();
+        });
+
+        //修改
+        $("#taxnumber_btnEdit").on("click", function () {
+            taxnumberFlag = 1;
+            var row = $("#taxnumber_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEventTaxNumber();
+                $("#taxnumberid").val(row[0].pid);
+                $("#taxnumber_number").val(row[0].ptaxnumber);
+                $("#taxnumber_price").val(row[0].ptaxprice);
+                $("#taxnumber_rate").val(row[0].ptaxrate);
+                Window.openSmallDialog($("#taxnumber_dlg"), "修改商品税号信息", 'icon-add', disposeTaxNumber);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+         //删除
+        $("#taxnumber_btnDel").on("click", function () {
+            var row = $("#taxnumber_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合  
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].pid)
+                        }  
+
+                        $.post('@Url.Action("Delete", "TaxNumber")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                LoadPageTaxNumberData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //查询
+        $("#taxnumber_btnQuery").on("click", function () {
+            LoadPageTaxNumberData();
+        });
+
+        //导入
+        var options = {
+            beforeSubmit: showRequest,
+            error: showError,
+            success: showResponse
+        };
+        $("#frm_taxnumber").submit(function () {
+            $(this).ajaxSubmit(options);
+            return false;
+        });
+        //导入
+        $("#taxnumber_linkImport").click(function () {
+            $("#taxnumber_btnImport").trigger("click");
+        });
+
+        ///禁止回车触发form提交
+        $("#taxnumber_search_number,#taxnumber_search_price,#taxnumber_search_rate").keypress(function (event) {
+            var e = event || window.event;
+            if (e.keyCode == 13) {
+                return false;
+            }
+        });
+        $("#taxnumber_search_price,#taxnumber_search_rate").keyup(function (event) {
+            $(this).val($(this).val().replace(/\D/gi, ""));
+        });
+
+        //导出
+        $("#taxnumber_btnExport").click(function () {
+            var url = '@Url.Action("ExportExcel", "TaxNumber")?number=' + queryParams.number + "&price=" + queryParams.price + "&rate=" + queryParams.rate + "&sort=" + sortColumn + "&order=" + sortType;
+            if ($("#taxnumber_InfoList").datagrid("getRows").length > 0) {
+                window.location = url;
+            }
+            else {
+                $.messager.alert("提示", "暂无数据可导出！");
+            }
+        });
+    });
+
+    function showRequest(formData, jqForm, options) {
+        var file = $("#ptax_file");
+        if (file.val() === '') {
+            $.messager.alert("提示", "请选择文件！");
+            return false;
+        }
+        var typefile = file.val().substring(file.val().indexOf('.') + 1, file.val().length);
+        if ("xls,xlsx".indexOf(typefile.toLowerCase()) < 0) {
+            $.messager.alert("提示", "请选择正确的文件(excel文件)！");
+            return false;
+        }
+        $.messager.progress({
+            text: '数据处理中...'
+        });
+    }
+
+    function showResponse(responseText, statusText) {
+        $.messager.progress("close");
+        $("#p_file").val("");
+
+        var json = eval(responseText);
+        if (json.Status) {
+            $.messager.alert("提示", json.Msg, "info", function () {
+                LoadPageTaxNumberData();
+            });
+        }
+        else {
+            $.messager.alert("提示", json.Msg);
+        }
+    }
+
+    function showError(data) {
+        $.messager.progress("close");
+        $.messager.alert("提示", '请求错误！');
+    }
+
+    var disposeTaxNumber = function () {
+        $("#taxnumber_Ok").unbind("click");
+        $("#taxnumber_Cancel").unbind("click");
+    };
+
+    //新增保存
+    var addDataTaxNumber = function () {
+         var isValid = $("#taxnumber_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+        
+        //获取参数
+        var params = {
+            number: $("#taxnumber_number").val(),
+            price: $("#taxnumber_price").val(),
+            rate: $("#taxnumber_rate").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "TaxNumber")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#taxnumber_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageTaxNumberData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+     var editDataTaxNumber = function () {
+         var isValid = $("#taxnumber_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            number: $("#taxnumber_number").val(),
+            price: $("#taxnumber_price").val(),
+            rate: $("#taxnumber_rate").val(),
+            pid: $("#taxnumberid").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Update", "TaxNumber")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#taxnumber_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageTaxNumberData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEventTaxNumber = function () {
+        //确定按钮事件
+        $("#taxnumber_Ok").click(function () {
+            switch (taxnumberFlag) {
+                case 0:
+                    //新增
+                    addDataTaxNumber();
+                    break;
+                case 1:
+                    //修改
+                    editDataTaxNumber();
+                    break;
+                default:
+                    Window.closeDialog($("#taxnumber_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#taxnumber_Cancel").click(function () {
+            Window.closeDialog($("#taxnumber_dlg"));
+        });
+    };
+
+    //页面数据加载
+    function LoadPageTaxNumberData() {
+        queryParams.number = $("#taxnumber_search_number").val();
+        queryParams.price = $("#taxnumber_search_price").val();
+        queryParams.rate = $("#taxnumber_search_rate").val();
+
+        $("#taxnumber_InfoList").datagrid({
+            url: "@Url.Action("GetGoodTaxNumberData", "TaxNumber")",
+            method: "post",
+            queryParams: queryParams,
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'pid', title: 'pid', hidden: true },
+                    { field: 'ptaxnumber', title: '商品税号', width: 150, align: 'center', sortable: true },
+                    { field: 'ptaxprice', title: '完税价格', width: 150, align: 'center', sortable: true },
+                    { field: 'ptaxrate', title: '税率', width: 100, align: 'center', sortable: true }         
+                ]
+            ],
+            pagination: true,
+            pageNumber: 1,
+            pageSize: 20,
+            pageList: [20, 50, 100, 500],
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg: "数据加载中....",
+            onLoadSuccess: function (data) {
+                sortColumn = data.sortColumn;
+                sortType = data.sortType
+
+                $(this).datagrid("fixRowNumber");
+            }
+        });
+    }
+</script>
