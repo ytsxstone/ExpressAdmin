@@ -30,17 +30,6 @@
 
 <script type="text/javascript">
     $(function () {
-        $("#tabs").tabs({
-            width: $("#tabs").parent().width(),
-            height: $("#tabs").parent().height()
-        }); 
-
-        $('#tabs').tabs('resize', {
-            plain: false,
-            boder: false,
-            width: $(window).width(),
-            height: $(window).height() - 50
-        });   
         loadMenuTree();
     });
 
