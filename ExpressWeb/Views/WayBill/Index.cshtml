@@ -265,28 +265,28 @@
 </div>
 
 <script>
-    var waybillFlag = 0;
+    var wayBillFlag = 0;
     var queryParams = {};
     var sortColumn = 'warehousingno', sortType = 'asc';
 
     $(function () {
         //$("#waybill_Panel").parent(".panel-body")[0].style.height = '800px';
 
-        LoadPagewaybillData();
+        LoadPageWayBillData();
 
         //新增
         $("#waybill_btnAdd").on("click", function () {
-            waybillFlag = 0;
+            wayBillFlag = 0;
             Window.openBigDialog($("#waybill_dlg"), "添加运单信息", 'icon-add', disposeWayBill);
-            bindEventwaybill();
+            bindEventWayBill();
         });
 
         //修改
         $("#waybill_btnEdit").on("click", function () {
-            waybillFlag = 1;
+            wayBillFlag = 1;
             var row = $("#waybill_InfoList").datagrid("getSelections");
             if (row.length > 0) {
-                bindEventwaybill();
+                bindEventWayBill();
                 $("#waybillid").val(row[0].oid);
                 $("#waybill_warehousingno").val(row[0].warehousingno);
                 $("#waybill_waybillnumber").val(row[0].waybillnumber);
@@ -356,7 +356,7 @@
                         $.post('@Url.Action("Delete", "WayBill")', { ids: arrayIds.join(',') }, function (data1) {
                             if (data1) {
                                 $.messager.alert("提示", data1.Msg);
-                                LoadPagewaybillData();
+                                LoadPageWayBillData();
                             }
                         });
                     }
@@ -380,7 +380,7 @@
                             $.messager.alert("提示", data1.Msg);
 
                             if (data1.Status) {
-                                LoadPagewaybillData();
+                                LoadPageWayBillData();
                             }
                         });
                     }
@@ -393,7 +393,7 @@
 
         //查询
         $("#waybill_btnQuery").on("click", function () {
-            LoadPagewaybillData();
+            LoadPageWayBillData();
         });
 
         //导入
@@ -459,12 +459,22 @@
 
         var json = eval(responseText);
         if (json.Status) {
-            $.messager.alert("提示", json.Msg, "info", function () {
-                LoadPagewaybillData();
+            //$.messager.alert("提示", json.Msg, "info", function () {
+            //    LoadPageWayBillData();
+            //});
+            $.messager.alert({
+                width: 620,
+                title: "提示",
+                msg: json.Msg,
+                //icon: "info",
+                fn: function() {
+                    LoadPageWayBillData();
+                }
             });
         }
         else {
-            $.messager.alert("提示", json.Msg);
+            //$.messager.alert("提示", json.Msg);
+            $.messager.alert({ width: 430, title: "提示", msg: json.Msg, icon: "error" });
         }
     }
 
@@ -479,7 +489,7 @@
     };
 
     //新增保存
-    var addDatawaybill = function () {
+    var addDataWayBill = function () {
         var isValid = $("#waybill_Form").form('validate');
         if (!isValid) {
             return false;
@@ -534,7 +544,7 @@
                 Window.closeDialog($("#waybill_dlg"));
                 $.messager.alert("提示", result.Msg);
                 //加载数据
-                LoadPagewaybillData();
+                LoadPageWayBillData();
             } else {
                 $.messager.alert("提示", result.Msg);
             }
@@ -542,7 +552,7 @@
     };
 
     //修改保存
-     var editDatawaybill = function () {
+     var editDataWayBill = function () {
          var isValid = $("#waybill_Form").form('validate');
         if (!isValid) {
             return false;
@@ -598,7 +608,7 @@
                 Window.closeDialog($("#waybill_dlg"));
                 $.messager.alert("提示", result.Msg);
                 //加载数据
-                LoadPagewaybillData();
+                LoadPageWayBillData();
             } else {
                 $.messager.alert("提示", result.Msg);
             }
@@ -606,17 +616,17 @@
     };
 
     //绑定事件
-    var bindEventwaybill = function () {
+    var bindEventWayBill = function () {
         //确定按钮事件
         $("#waybill_Ok").click(function () {
-            switch (waybillFlag) {
+            switch (wayBillFlag) {
                 case 0:
                     //新增
-                    addDatawaybill();
+                    addDataWayBill();
                     break;
                 case 1:
                     //修改
-                    editDatawaybill();
+                    editDataWayBill();
                     break;
                 default:
                     Window.closeDialog($("#waybill_dlg"));
@@ -631,7 +641,7 @@
     };
 
     //页面数据加载
-    function LoadPagewaybillData() {
+    function LoadPageWayBillData() {
         queryParams.importBatch = $("#sel_import_bitch").val();
         queryParams.exportBatch = $("#sel_bitch").val();
         queryParams.searchText = $("#waybill_search_text").val();

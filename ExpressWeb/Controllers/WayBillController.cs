@@ -1345,7 +1345,7 @@ namespace ExpressWeb.Controllers
 
                 //重命名物品名称、关联税关号、匹配完税价格
                 flag = true;
-                validMsg = "运单编号：" + row["运单编号"].ToString() + "<br/>";
+                validMsg = "运单编号：" + row["运单编号"].ToString() + "<br/>&nbsp;&nbsp;";
 
                 for (int i = 0; i < relevanceArray.Length; i++)
                 {
@@ -1418,7 +1418,7 @@ namespace ExpressWeb.Controllers
                     if (!string.IsNullOrWhiteSpace(row[relevanceArray[i]].ToString()) && string.IsNullOrWhiteSpace(row[taxArray[i]].ToString()))
                     {
                         flag = false;
-                        validMsg += "&nbsp;&nbsp;" + taxArray[i] + "，";
+                        validMsg += taxArray[i] + "，";
                     }
                 }
 
@@ -1475,7 +1475,7 @@ namespace ExpressWeb.Controllers
 
                 //重命名物品名称、关联税关号、匹配完税价格
                 flag = true;
-                validMsg = "运单编号：" + row["waybillnumber"].ToString() + "<br/>";
+                validMsg = "运单编号：" + row["waybillnumber"].ToString() + "<br/>&nbsp;&nbsp;";
 
                 for (int i = 0; i < relevanceArray.Length; i++)
                 {
@@ -1548,7 +1548,7 @@ namespace ExpressWeb.Controllers
                     if (!string.IsNullOrWhiteSpace(row[relevanceArray[i]].ToString()) && string.IsNullOrWhiteSpace(row[taxArray[i]].ToString()))
                     {
                         flag = false;
-                        validMsg += "&nbsp;&nbsp;" + taxArray[i] + "，";
+                        validMsg += taxArray[i] + "，";
                     }
                 }
 

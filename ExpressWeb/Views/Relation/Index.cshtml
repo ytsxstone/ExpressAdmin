@@ -306,7 +306,8 @@
             });
         }
         else {
-            $.messager.alert("提示", json.Msg);
+            //$.messager.alert("提示", json.Msg);
+            $.messager.alert({ width: 430, title: "提示", msg: json.Msg, icon: "error" });
         }
     }
 
