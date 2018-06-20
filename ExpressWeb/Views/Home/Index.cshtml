@@ -100,6 +100,18 @@
         }
     }
 
+    //刷新当前标签Tabs
+    function RefreshTab(currentTab) {
+        var url = $(currentTab.panel('options')).attr('href');
+        $('#tabs').tabs('update', {
+            tab: currentTab,
+            options: {
+                href: url
+            }
+        });
+        currentTab.panel('refresh');
+    }
+
     //退出
     $("#logout").on("click", function () {
         $.messager.confirm("提示", "您确定要退出吗？", function (data) {

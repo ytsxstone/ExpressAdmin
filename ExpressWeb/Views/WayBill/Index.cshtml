@@ -424,6 +424,12 @@
             var url = '@Url.Action("ExportExcel", "WayBill")?importBatch=' + queryParams.importBatch + '&exportBatch=' + queryParams.exportBatch + "&searchText=" + queryParams.searchText + "&sort=" + sortColumn + "&order=" + sortType;
             if ($("#waybill_InfoList").datagrid("getRows").length > 0) {
                 window.location = url;
+
+                //刷新tabs
+                setTimeout(function () {
+                    var currentTab = $('#tabs').tabs('getSelected');
+                    RefreshTab(currentTab);
+                }, 1000);
             }
             else {
                 $.messager.alert("提示", "暂无数据可导出！");
@@ -468,7 +474,9 @@
                 msg: json.Msg,
                 //icon: "info",
                 fn: function() {
-                    LoadPageWayBillData();
+                    //刷新tabs
+                    var currentTab = $('#tabs').tabs('getSelected');
+                    RefreshTab(currentTab);
                 }
             });
         }
