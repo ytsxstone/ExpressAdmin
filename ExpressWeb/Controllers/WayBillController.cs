@@ -945,16 +945,60 @@ namespace ExpressWeb.Controllers
                 DataTable dt_export = GetExportFailData(searchWhere);
 
                 //重命名列名
-                dt_export.Columns["goodsname"].ColumnName = "物品名称";
+                dt_export.Columns["goodsname"].ColumnName = "原物品名称";
+                dt_export.Columns["taxnumber"].ColumnName = "商品税号";
+                dt_export.Columns["newname1"].ColumnName = "新物品名称1";
+                dt_export.Columns["newname2"].ColumnName = "新物品名称2";
+                dt_export.Columns["newname3"].ColumnName = "新物品名称3";
+                dt_export.Columns["newname4"].ColumnName = "新物品名称4";
+                dt_export.Columns["newname5"].ColumnName = "新物品名称5";
+                dt_export.Columns["newname6"].ColumnName = "新物品名称6";
+                dt_export.Columns["newname7"].ColumnName = "新物品名称7";
+                dt_export.Columns["newname8"].ColumnName = "新物品名称8";
+                dt_export.Columns["newname9"].ColumnName = "新物品名称9";
+                dt_export.Columns["newname10"].ColumnName = "新物品名称10";
+                dt_export.Columns["newname11"].ColumnName = "新物品名称11";
+                dt_export.Columns["newname12"].ColumnName = "新物品名称12";
+                dt_export.Columns["newname13"].ColumnName = "新物品名称13";
+                dt_export.Columns["newname14"].ColumnName = "新物品名称14";
+                dt_export.Columns["newname15"].ColumnName = "新物品名称15";
+                dt_export.Columns["newname16"].ColumnName = "新物品名称16";
+                dt_export.Columns["newname17"].ColumnName = "新物品名称17";
+                dt_export.Columns["newname18"].ColumnName = "新物品名称18";
+                dt_export.Columns["newname19"].ColumnName = "新物品名称19";
+                dt_export.Columns["newname20"].ColumnName = "新物品名称20";
 
                 #region 配置导出参数
 
                 //需要设置内容靠左显示的字段集合
-                List<string> contentLeftStyleColumns = new List<string>() { "物品名称" };
+                List<string> contentLeftStyleColumns = new List<string>() { "原物品名称", "商品税号", "新物品名称1", "新物品名称2", "新物品名称3", "新物品名称4", "新物品名称5",
+                        "新物品名称6", "新物品名称7", "新物品名称8", "新物品名称9", "新物品名称10", "新物品名称11", "新物品名称12", "新物品名称13",
+                        "新物品名称14", "新物品名称15", "新物品名称16", "新物品名称17", "新物品名称18", "新物品名称19", "新物品名称20"};
 
                 //列宽字典
                 Dictionary<string, double> dictWidthColumns = new Dictionary<string, double>();
-                dictWidthColumns.Add("物品名称", 15.85);
+                dictWidthColumns.Add("原物品名称", 15.85);
+                dictWidthColumns.Add("商品税号", 15.15);
+                dictWidthColumns.Add("新物品名称1", 15.15);
+                dictWidthColumns.Add("新物品名称2", 15.15);
+                dictWidthColumns.Add("新物品名称3", 15.15);
+                dictWidthColumns.Add("新物品名称4", 15.15);
+                dictWidthColumns.Add("新物品名称5", 15.15);
+                dictWidthColumns.Add("新物品名称6", 15.15);
+                dictWidthColumns.Add("新物品名称7", 15.15);
+                dictWidthColumns.Add("新物品名称8", 15.15);
+                dictWidthColumns.Add("新物品名称9", 15.15);
+                dictWidthColumns.Add("新物品名称10", 15.15);
+                dictWidthColumns.Add("新物品名称11", 15.15);
+                dictWidthColumns.Add("新物品名称12", 15.15);
+                dictWidthColumns.Add("新物品名称13", 15.15);
+                dictWidthColumns.Add("新物品名称14", 15.15);
+                dictWidthColumns.Add("新物品名称15", 15.15);
+                dictWidthColumns.Add("新物品名称16", 15.15);
+                dictWidthColumns.Add("新物品名称17", 15.15);
+                dictWidthColumns.Add("新物品名称18", 15.15);
+                dictWidthColumns.Add("新物品名称19", 15.15);
+                dictWidthColumns.Add("新物品名称20", 15.15);
 
                 List<string> empty = new List<string>();
 
@@ -983,12 +1027,15 @@ namespace ExpressWeb.Controllers
         private DataTable GetExportFailData(string searchWhere)
         {
             //查询SQL
-            string strSql = $@"select distinct goodsname from (
+            string strSql = $@"select goodsname, '' taxnumber, '' newname1, '' newname2, '' newname3, '' newname4, '' newname5, '' newname6, '' newname7,
+                    '' newname8, '' newname9, '' newname10, '' newname11, '' newname12, '' newname13, '' newname14, '' newname15, '' newname16, '' newname17,
+                    '' newname18, '' newname19, '' newname20 from (
                     select goodsname1 as goodsname from waybill where goodsname1 <> '' and customsno1 = '' {searchWhere}
                     union all 
                     select goodsname2 as goodsname from waybill where goodsname2 <> '' and customsno2 = '' {searchWhere}
                     union all 
                     select goodsname3 as goodsname from waybill where goodsname3 <> '' and customsno3 = '' {searchWhere}) as a 
+                group by goodsname 
                 order by goodsname asc";
 
             //获取数据集
