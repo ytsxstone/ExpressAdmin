@@ -80,6 +80,8 @@ namespace ExpressCommon
                 {
                     workBook.Worksheets.Add(dt.TableName);
                     Worksheet ws = workBook.Worksheets[dt.TableName];
+                    ws.FreezePanes(1, 1, 1, 0); //冻结第一行
+
                     int rowscount = dt.Rows.Count;
                     for (int col = 0; col < dt.Columns.Count; col++)
                     {
@@ -140,6 +142,8 @@ namespace ExpressCommon
                 workBook.Worksheets.Clear();
                 workBook.Worksheets.Add(dt.TableName);
                 Worksheet ws = workBook.Worksheets[dt.TableName];
+                ws.FreezePanes(1, 1, 1, 0); //冻结第一行
+
                 int rowscount = dt.Rows.Count;
                 for (int col = 0; col < dt.Columns.Count; col++)
                 {
@@ -204,6 +208,7 @@ namespace ExpressCommon
                 workBook.Worksheets.Clear();
                 workBook.Worksheets.Add(dt.TableName);
                 Worksheet ws = workBook.Worksheets[dt.TableName];
+                ws.FreezePanes(1, 1, 1, 0); //冻结第一行
 
                 //设置标题样式
                 Aspose.Cells.Style headerStyle = workBook.CreateStyle();
@@ -381,6 +386,7 @@ namespace ExpressCommon
                 workBook.Worksheets.Clear();
                 workBook.Worksheets.Add(dt.TableName);
                 Worksheet ws = workBook.Worksheets[dt.TableName];
+                ws.FreezePanes(1, 1, 1, 0); //冻结第一行
 
                 //设置标题样式
                 Aspose.Cells.Style headerStyle = workBook.CreateStyle();
@@ -391,6 +397,7 @@ namespace ExpressCommon
                 headerStyle.Font.IsBold = true; //粗体
                 headerStyle.ForegroundColor = System.Drawing.Color.FromArgb(91, 155, 213); //背景色
                 headerStyle.Pattern = Aspose.Cells.BackgroundType.Solid; //单元格的线：实线 
+
                 //设置内容列样式
                 Aspose.Cells.Style contentStyle = workBook.CreateStyle();
                 contentStyle.HorizontalAlignment = TextAlignmentType.Center; //文本水平显示方式
