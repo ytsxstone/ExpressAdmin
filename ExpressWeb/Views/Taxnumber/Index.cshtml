@@ -34,7 +34,7 @@
         }
     </div>
     <div id="taxnumber_Body" style="padding: 0px 5px 5px 5px;">
-        <table id="taxnumber_InfoList"></table>
+        <table id="taxnumber_InfoList" style="min-height:585px;"></table>
     </div>
 </div>
 <!--对话框-->
@@ -314,6 +314,8 @@
                     { field: 'ptaxrate', title: '税率', width: 100, align: 'center', sortable: true }         
                 ]
             ],
+            fit: true,
+            //fitColumns: true,
             pagination: true,
             pageNumber: 1,
             pageSize: 20,

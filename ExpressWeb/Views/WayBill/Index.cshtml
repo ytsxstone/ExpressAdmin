@@ -69,7 +69,7 @@
         }
     </div>
     <div id="waybill_Body" style="padding: 0px 5px 5px 5px;">
-        <table id="waybill_InfoList"></table>
+        <table id="waybill_InfoList" style="min-height:585px;"></table>
     </div>
 </div>
 
@@ -709,6 +709,8 @@
                     { field: 'exportbatch', title: '导出批次', align: 'left', width: 195, sortable: true }
                 ]
             ],
+            fit: true,
+            //fitColumns: true,
             pagination: true,
             pageNumber: 1,
             pageSize: 20,
