@@ -107,7 +107,7 @@ namespace ExpressWeb.Controllers
                     model.NewName18 = fc["newname18"];
                     model.NewName19 = fc["newname19"];
                     model.NewName20 = fc["newname20"];
-                    model.Created = Authentication.WebAccount.EmployeeAccount;
+                    model.Created = Authentication.WebAccount.EmployeeName;
 
                     var num = dalRelation.Create(model);
                     if (num > 0)
@@ -172,7 +172,7 @@ namespace ExpressWeb.Controllers
                     model.NewName18 = fc["newname18"];
                     model.NewName19 = fc["newname19"];
                     model.NewName20 = fc["newname20"];
-                    model.Updated = Authentication.WebAccount.EmployeeAccount;
+                    model.Updated = Authentication.WebAccount.EmployeeName;
 
                     var num = dalRelation.Update(model);
                     if (num > 0)
@@ -336,7 +336,7 @@ namespace ExpressWeb.Controllers
                 }
 
                 //批量导入
-                dalRelation.BulkEmport(listEmportData, Authentication.WebAccount.EmployeeAccount);
+                dalRelation.BulkEmport(listEmportData, Authentication.WebAccount.EmployeeName);
 
                 json.Status = true;
                 json.Msg = "成功导入" + listEmportData.Count.ToString() + "条数据！";

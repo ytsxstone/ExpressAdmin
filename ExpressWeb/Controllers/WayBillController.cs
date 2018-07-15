@@ -47,7 +47,7 @@ namespace ExpressWeb.Controllers
         public ActionResult Index()
         {
             //登录帐号
-            var loginAccount = Authentication.WebAccount.EmployeeAccount;
+            var loginAccount = Authentication.WebAccount.EmployeeName;
             //可以查看所有
             if (!string.IsNullOrWhiteSpace(QueryAllWayBill) && QueryAllWayBill.Split(',').Contains(loginAccount))
             {
@@ -73,7 +73,7 @@ namespace ExpressWeb.Controllers
             try
             {
                 //登录帐号
-                var loginAccount = Authentication.WebAccount.EmployeeAccount;
+                var loginAccount = Authentication.WebAccount.EmployeeName;
                 //可以查看所有
                 if (!string.IsNullOrWhiteSpace(QueryAllWayBill) && QueryAllWayBill.Split(',').Contains(loginAccount))
                 {
@@ -172,7 +172,7 @@ namespace ExpressWeb.Controllers
                 //model.PhoneCount = int.Parse(fc["phonecount"]);
                 model.ImportBatch = "";
                 model.ExportBatch = "";
-                model.Created = Authentication.WebAccount.EmployeeAccount;
+                model.Created = Authentication.WebAccount.EmployeeName;
 
                 var num = dalWayBll.Create(model);
                 if (num > 0)
@@ -320,7 +320,7 @@ namespace ExpressWeb.Controllers
             try
             {
                 //登录帐号
-                var loginAccount = Authentication.WebAccount.EmployeeAccount;
+                var loginAccount = Authentication.WebAccount.EmployeeName;
 
                 #region 设置默认区间
 
@@ -576,7 +576,7 @@ namespace ExpressWeb.Controllers
                 string searchText = fc["searchText"].Trim();
 
                 //登录帐号
-                var loginAccount = Authentication.WebAccount.EmployeeAccount;
+                var loginAccount = Authentication.WebAccount.EmployeeName;
                 //可以查看所有
                 if (!string.IsNullOrWhiteSpace(QueryAllWayBill) && QueryAllWayBill.Split(',').Contains(loginAccount))
                 {
@@ -650,7 +650,7 @@ namespace ExpressWeb.Controllers
                 int count = 0;
 
                 //循环计算
-                var updated = Authentication.WebAccount.EmployeeAccount;
+                var updated = Authentication.WebAccount.EmployeeName;
 
                 foreach (ModWayBill model in listWaybill)
                 {
@@ -727,7 +727,7 @@ namespace ExpressWeb.Controllers
                 string sortType = order ?? "asc";
 
                 //登录帐号
-                var loginAccount = Authentication.WebAccount.EmployeeAccount;
+                var loginAccount = Authentication.WebAccount.EmployeeName;
                 //可以查看所有
                 if (!string.IsNullOrWhiteSpace(QueryAllWayBill) && QueryAllWayBill.Split(',').Contains(loginAccount))
                 {
@@ -922,7 +922,7 @@ namespace ExpressWeb.Controllers
             try
             {
                 //登录帐号
-                var loginAccount = Authentication.WebAccount.EmployeeAccount;
+                var loginAccount = Authentication.WebAccount.EmployeeName;
                 //可以查看所有
                 if (!string.IsNullOrWhiteSpace(QueryAllWayBill) && QueryAllWayBill.Split(',').Contains(loginAccount))
                 {

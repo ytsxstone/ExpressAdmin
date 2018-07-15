@@ -87,7 +87,7 @@ namespace ExpressWeb.Controllers
                 }
                 else
                 {
-                    var num = dalProhibited.Create(pname, premark, type, Authentication.WebAccount.EmployeeAccount);
+                    var num = dalProhibited.Create(pname, premark, type, Authentication.WebAccount.EmployeeName);
                     if (num > 0)
                     {
                         json.Status = true;
@@ -130,7 +130,7 @@ namespace ExpressWeb.Controllers
                 }
                 else
                 {
-                    var num = dalProhibited.Update(pid, pname, premark, type, Authentication.WebAccount.EmployeeAccount);
+                    var num = dalProhibited.Update(pid, pname, premark, type, Authentication.WebAccount.EmployeeName);
                     if (num > 0)
                     {
                         json.Status = true;
@@ -307,7 +307,7 @@ namespace ExpressWeb.Controllers
                 }
 
                 //批量导入
-                dalProhibited.BulkEmport(listEmportData, Authentication.WebAccount.EmployeeAccount);
+                dalProhibited.BulkEmport(listEmportData, Authentication.WebAccount.EmployeeName);
 
                 json.Status = true;
                 json.Msg = "成功导入" + listEmportData.Count.ToString() + "条数据！";
