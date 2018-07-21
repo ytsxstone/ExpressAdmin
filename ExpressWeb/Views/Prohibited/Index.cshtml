@@ -31,6 +31,7 @@
                 <option value="1">禁运物品</option>
                 <option value="2">收件人地址</option>
                 <option value="3">收件人名称</option>
+                <option value="4">收件人电话</option>
             </select>
             <a href="javascript:;" id="prohibited_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
         </div>
@@ -57,6 +58,7 @@
                         <option value="1">禁运物品</option>
                         <option value="2">收件人地址</option>
                         <option value="3">收件人名称</option>
+                        <option value="4">收件人电话</option>
                     </select>
                 </td>
             </tr>
@@ -316,7 +318,7 @@
                     { field: 'premark', title: '备注', width: 250, align: 'left', sortable: true },
                     {
                         field: 'type', title: '类型', width: 110, align: 'center', sortable: true, formatter: function(value, row,index) {
-                            return value == 1 ? "禁运物品" : (value == 2 ? "收件人地址" : (value == 3 ? "收件人名称" : ""));
+                            return value == 1 ? "禁运物品" : (value == 2 ? "收件人地址" : (value == 3 ? "收件人名称" : (value == 4 ? "收件人电话" : "")));
                         }
                     },
                     { field: 'created', title: '创建人', width: 100, align: 'left', sortable: true },

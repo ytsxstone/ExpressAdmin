@@ -61,7 +61,7 @@ namespace ExpressDAL
         /// <returns></returns>
         public DataTable GetProhibitedExportData(string pname, int type, string sortColumn, string sortType)
         {
-            var sql = string.Format(@"select pname, premark, (case type when 1 then '禁运物品' when 2 then '收件人地址' when 3 then '收件人名称' else '' end) as type from prohibitedgood where 1=1");
+            var sql = string.Format(@"select pname, premark, (case type when 1 then '禁运物品' when 2 then '收件人地址' when 3 then '收件人名称' when 4 then '收件人电话' else '' end) as type from prohibitedgood where 1=1");
 
             if (!string.IsNullOrWhiteSpace(pname))
             {
@@ -83,7 +83,7 @@ namespace ExpressDAL
         /// </summary>
         public int Create(string pname, string premark, int type, string created)
         {
-            var sql = $@"insert into prohibitedgood(pname,premark,type,created,created_time) values('{pname}','{premark}',{type},'{created}',datetime('now', 'localtime'))";
+            var sql = $@"insert into prohibitedgood(pname,premark,type,created,created_time) values('{pname}','{premark}',{type},'{created}',getdate())";
 
             return SQLHelper.ExecuteNonQuery(SQLHelper.defConnStr, CommandType.Text, sql, null);
         }
@@ -93,7 +93,7 @@ namespace ExpressDAL
         /// </summary>
         public int Update(int pid, string pname, string premark, int type, string updated)
         {
-            var sql = $@"update prohibitedgood set pname='{pname}',premark='{premark}',type={type},updated='{updated}',updated_time=datetime('now', 'localtime') where pid={pid}";
+            var sql = $@"update prohibitedgood set pname='{pname}',premark='{premark}',type={type},updated='{updated}',updated_time=getdate() where pid={pid}";
 
             return SQLHelper.ExecuteNonQuery(SQLHelper.defConnStr, CommandType.Text, sql, null);
         }

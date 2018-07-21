@@ -355,10 +355,10 @@ namespace ExpressWeb.Controllers
             string validMsg = "名称：" + row["名称"].ToString().Trim() + "，类型：" + row["类型"].ToString().Trim();
 
             //不为空时, 类型只能输入数字
-            if (!string.IsNullOrWhiteSpace(row["类型"].ToString()) && !ComHelper.CustomeRegex(row["类型"].ToString().Trim(), "^[1,2,3]$"))
+            if (!string.IsNullOrWhiteSpace(row["类型"].ToString()) && !ComHelper.CustomeRegex(row["类型"].ToString().Trim(), "^[1,2,3,4]$"))
             {
                 flag = false;
-                validMsg += "  类型只能输入数字[1,2,3]";
+                validMsg += "  类型只能输入数字[1,2,3,4]";
             }
 
             //验证通过, 清空字符串

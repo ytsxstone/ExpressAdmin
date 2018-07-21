@@ -10,7 +10,7 @@ namespace ExpressModel
         // 主键ID
         public int Pid { get; set; }
 
-        //类型 1-物品名称 2-收件人地址 3-收件人名称
+        //类型 1-物品名称 2-收件人地址 3-收件人名称 4-收件人电话
         public int Type { get; set; }
 
         // 禁运物品名称
