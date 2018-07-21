@@ -19,7 +19,7 @@
             <a href="javascript:;" id="prohibited_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
             <a href="javascript:;" id="prohibited_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
             <a href="javascript:;" id="prohibited_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
-            <input type="file" id="p_file" name="p_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+            <input type="file" id="p_prohibited_file" name="p_prohibited_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
             <input type="submit" id="prohibited_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
             <a href="javascript:;" id="prohibited_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
             <a href="javascript:;" id="prohibited_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出</a>
@@ -178,7 +178,7 @@
     });
     
     function showRequest(formData, jqForm, options) {       
-        var file = $("#p_file");
+        var file = $("#p_prohibited_file");
         if (file.val() === '') {
             $.messager.alert("提示", "请选择文件！");
             return false;
@@ -195,7 +195,7 @@
 
     function showResponse(responseText, statusText) {
         $.messager.progress("close");
-        $("#p_file").val("");
+        $("#p_prohibited_file").val("");
 
         var json = eval(responseText);
         if (json.Status) {

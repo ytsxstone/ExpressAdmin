@@ -314,7 +314,7 @@ namespace ExpressWeb.Controllers
         /// 导入
         /// </summary>
         [HttpPost]
-        public JsonResult Import(HttpPostedFileBase wb_file)
+        public JsonResult Import(HttpPostedFileBase p_waybill_file)
         {
             var json = new JsonData();
             try
@@ -338,14 +338,14 @@ namespace ExpressWeb.Controllers
 
                 #region 上传文件
 
-                if ((wb_file.ContentLength / 1024 / 1024) > 10)
+                if ((p_waybill_file.ContentLength / 1024 / 1024) > 10)
                 {
                     json.Status = false;
                     json.Msg = "文件大小不能超过" + (10).ToString() + "M！";
                     return Json(json);
                 }
 
-                var fileName = wb_file.FileName;//文件名
+                var fileName = p_waybill_file.FileName;//文件名
                 var fType = ComHelper.GetFileType(fileName);
                 var fileTypes = new string[] { "xls", "xlsx" };   //可上传文件格式
 
@@ -362,7 +362,7 @@ namespace ExpressWeb.Controllers
                 {
                     Directory.CreateDirectory(filePath);
                 }
-                wb_file.SaveAs(Path.Combine(filePath, fileName));
+                p_waybill_file.SaveAs(Path.Combine(filePath, fileName));
 
                 #endregion
 

@@ -190,21 +190,21 @@ namespace ExpressWeb.Controllers
         /// 导入
         /// </summary>
         [HttpPost]
-        public JsonResult Import(HttpPostedFileBase ptax_file)
+        public JsonResult Import(HttpPostedFileBase p_taxnumber_file)
         {
             var json = new JsonData();
             try
             {
                 #region 上传文件
 
-                if ((ptax_file.ContentLength / 1024 / 1024) > 10)
+                if ((p_taxnumber_file.ContentLength / 1024 / 1024) > 10)
                 {
                     json.Status = false;
                     json.Msg = "文件大小不能超过" + (10).ToString() + "M！";
                     return Json(json);
                 }
 
-                var fileName = ptax_file.FileName;//文件名
+                var fileName = p_taxnumber_file.FileName;//文件名
                 var fType = ComHelper.GetFileType(fileName);
                 var fileTypes = new string[] { "xls", "xlsx" };   //可上传文件格式
 
@@ -221,7 +221,7 @@ namespace ExpressWeb.Controllers
                 {
                     Directory.CreateDirectory(filePath);
                 }
-                ptax_file.SaveAs(Path.Combine(filePath, fileName));
+                p_taxnumber_file.SaveAs(Path.Combine(filePath, fileName));
 
                 #endregion
 
