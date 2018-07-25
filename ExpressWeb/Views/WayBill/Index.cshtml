@@ -20,17 +20,28 @@
     <div id="waybill_Header" style="padding: 5px;">
         @using (Html.BeginForm("Import", "WayBill", FormMethod.Post, new { id = "frm_waybill", enctype = "multipart/form-data" }))
         {
-        <div id="waybill_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
-            <a href="javascript:;" id="waybill_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
-            <a href="javascript:;" id="waybill_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
-            <a href="javascript:;" id="waybill_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
-            <input type="file" id="p_waybill_file" name="p_waybill_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
-            <input type="submit" id="waybill_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
-            <a href="javascript:;" id="waybill_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
-            <a href="javascript:;" id="waybill_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出运单数据</a>
-            <a href="javascript:;" id="waybill_btnFailExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出税关号为空的物品数据</a>
-            <a href="javascript:;" id="waybill_btnGenerate" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-reload'">生成</a>
-        </div>
+            <div id="waybill_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+                <a href="javascript:;" id="waybill_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+                <a href="javascript:;" id="waybill_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+                <a href="javascript:;" id="waybill_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+                <input type="file" id="p_waybill_file" name="p_waybill_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+                <input type="submit" id="waybill_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
+                <input type="hidden" name="hid_type" id="hid_type" value="0"/>
+                <a href="javascript:;" id="waybill_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
+                <a href="javascript:;" id="waybill_linkImport_new" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入新模板</a>
+                <a href="javascript:;" id="waybill_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出运单数据</a>
+                <a href="javascript:;" id="waybill_btnExport_New" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出运单数据新模板</a>
+                <a href="javascript:;" id="waybill_btnFailExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出税关号为空的物品数据</a>
+                <a href="javascript:;" id="waybill_btnGenerate" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-reload'">生成</a>
+            </div> 
+        }
+        @using (Html.BeginForm("Importrelation", "waybill", FormMethod.Post, new { id = "frm_relation_new", enctype = "multipart/form-data" }))
+            {
+                <input type="file" id="p_relation_file_new" name="p_relation_file_new" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
+                <input type="submit" id="relation_btnImport_new" value="导入对应关系" class="easyui-linkbutton" style="display:none;" />
+                <a href="javascript:;" id="relation_linkImport_new" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入对应关系</a>
+            }
+       
             <div id="waybill_Toolbar2" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
                 <label for="waybill_search_text" style="margin-left: 10px;">入仓号或运单编号：</label>
                 <input id="waybill_search_text" name="waybill_search_text" class="select searchText" style="width: 155px" maxlength="20" />
@@ -39,7 +50,7 @@
                     <option value="全部" selected>全部</option>
                     <option value="人工录入">人工录入</option>
                     @{
-                        var dt_import = (DataTable)ViewBag.dtImportBatch;
+                            var dt_import = (DataTable)ViewBag.dtImportBatch;
                         if (dt_import != null && dt_import.Rows.Count > 0)
                         {
                             foreach (DataRow item in dt_import.Rows)
@@ -66,7 +77,6 @@
                 </select>
                 <a href="javascript:;" id="waybill_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
             </div>
-        }
     </div>
     <div id="waybill_Body" style="padding: 0px 5px 5px 5px;">
         <table id="waybill_InfoList" style="min-height:585px;"></table>
@@ -347,11 +357,11 @@
             if (row.length > 0) {
                 $.messager.confirm("提示", "您确定要删除吗？", function (data) {
                     if (data) {
-                        //获取选中的id值集合  
+                        //获取选中的id值集合
                         var arrayIds = [];
                         for (var i = 0; i < row.length; i++) {
                             arrayIds.push(row[i].oid)
-                        }  
+                        }
 
                         $.post('@Url.Action("Delete", "WayBill")', { ids: arrayIds.join(',') }, function (data1) {
                             if (data1) {
@@ -408,6 +418,12 @@
         });
         //导入
         $("#waybill_linkImport").click(function () {
+            $("#hid_type").val(0);
+            $("#waybill_btnImport").trigger("click");
+        });
+        //导入新模板
+        $("#waybill_linkImport_new").click(function () {
+            $("#hid_type").val(1);
             $("#waybill_btnImport").trigger("click");
         });
 
@@ -436,10 +452,42 @@
             }
         });
 
+        //导出_新模板
+        $("#waybill_btnExport_New").click(function () {
+            var url = '@Url.Action("ExportExcel_New", "WayBill")?importBatch=' + queryParams.importBatch + '&exportBatch=' + queryParams.exportBatch + "&searchText=" + queryParams.searchText + "&sort=" + sortColumn + "&order=" + sortType;
+            if ($("#waybill_InfoList").datagrid("getRows").length > 0) {
+                window.location = url;
+
+                //刷新tabs
+                setTimeout(function () {
+                    var currentTab = $('#tabs').tabs('getSelected');
+                    RefreshTab(currentTab);
+                }, 1000);
+            }
+            else {
+                $.messager.alert("提示", "暂无数据可导出！");
+            }
+        });
+
         //导出税关号为空的物品名称数据
         $("#waybill_btnFailExport").click(function () {
             var url = '@Url.Action("ExportFailExcel", "WayBill")';
             window.location = url;
+        });
+
+        //导入
+        var optionsrelation = {
+            beforeSubmit: showRequestrelation,
+            error: showError,
+            success: showResponserelation
+        };
+        $("#frm_relation_new").submit(function () {
+            $(this).ajaxSubmit(optionsrelation);
+            return false;
+        });
+        //导入
+        $("#relation_linkImport_new").click(function () {
+            $("#relation_btnImport_new").trigger("click");
         });
     });
 
@@ -482,6 +530,37 @@
         }
         else {
             //$.messager.alert("提示", json.Msg);
+            $.messager.alert({ width: 430, title: "提示", msg: json.Msg, icon: "error" });
+        }
+    }
+
+    function showRequestrelation(formData, jqForm, options) {
+        var file = $("#p_relation_file_new");
+        if (file.val() === '') {
+            $.messager.alert("提示", "请选择文件！");
+            return false;
+        }
+        var typefile = file.val().substring(file.val().indexOf('.') + 1, file.val().length);
+        if ("xls,xlsx".indexOf(typefile.toLowerCase()) < 0) {
+            $.messager.alert("提示", "请选择正确的文件(excel文件)！");
+            return false;
+        }
+        $.messager.progress({
+            text: '数据处理中...'
+        });
+    }
+
+    function showResponserelation(responseText, statusText) {
+        $.messager.progress("close");
+        $("#p_relation_file_new").val("");
+
+        var json = eval(responseText);
+        if (json.Status) {
+            $.messager.alert("提示", json.Msg, "info", function () {
+                LoadPageRelationData();
+            });
+        }
+        else {
             $.messager.alert({ width: 430, title: "提示", msg: json.Msg, icon: "error" });
         }
     }

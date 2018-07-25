@@ -297,7 +297,7 @@
 
     function showResponse(responseText, statusText) {
         $.messager.progress("close");
-        $("#p_file").val("");
+        $("#p_relation_file").val("");
 
         var json = eval(responseText);
         if (json.Status) {
@@ -306,7 +306,6 @@
             });
         }
         else {
-            //$.messager.alert("提示", json.Msg);
             $.messager.alert({ width: 430, title: "提示", msg: json.Msg, icon: "error" });
         }
     }
