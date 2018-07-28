@@ -1098,10 +1098,10 @@ namespace ExpressWeb.Controllers
         private DataTable GetExportData(string searchtext, string sortColumn, string sortType)
         {
             //查询SQL
-            string strSql = string.Format(@"select warehousingno,waybillnumber,settlementweight,singlechannel,recipient,recphone,recaddress,reccity,
+            string strSql = string.Format(@"select oid,warehousingno,waybillnumber,singlechannel,recipient,recphone,recaddress,reccity,
                         recprovince,recpostcode,goodsname1,customsno1,price1,piecenum1,pieceweight1,goodsname2,customsno2,price2,piecenum2,pieceweight2,
-                        goodsname3,customsno3,price3,piecenum3,pieceweight3,declaredvalue,declaredcurrency,ispayduty,insured,typingtype,destination,destinationpoint,
-                        sender,sendphone,sendaddress,freight,customerquotation,tax,phonecount,importbatch,exportbatch,oid from waybill 
+                        goodsname3,customsno3,price3,piecenum3,pieceweight3,declaredcurrency,declaredvalue,settlementweight,typingtype,ispayduty,insured,destination,destinationpoint,
+                        sender,sendphone,sendaddress,freight,customerquotation,tax,phonecount,importbatch,exportbatch from waybill 
                         where 1=1 {0} order by {1} {2}", searchtext, sortColumn, sortType);
             
             //获取数据集
@@ -1193,6 +1193,7 @@ namespace ExpressWeb.Controllers
                 oidStr = oidStr.TrimEnd(',');
 
                 //删除oid, tax, exportbatch列, 不需要导出
+                dt_export.Columns.Remove("warehousingno");
                 dt_export.Columns.Remove("tax");
                 dt_export.Columns.Remove("importbatch");
                 dt_export.Columns.Remove("exportbatch");
@@ -1204,7 +1205,8 @@ namespace ExpressWeb.Controllers
                 dt_export.Columns.Remove("Freight");
                 dt_export.Columns.Remove("CustomerQuotation");
                 dt_export.Columns.Remove("PhoneCount");
-               
+                dt_export.Columns.Remove("sender");
+
                 //需要清空零值的字段集合
                 List<string> zeroColumns = new List<string>() { "price1", "piecenum1", "pieceweight1", "price2", "piecenum2", "pieceweight2",
                     "price3", "piecenum3", "pieceweight3" };
@@ -1239,35 +1241,35 @@ namespace ExpressWeb.Controllers
                 Dictionary<string, double> dictWidthColumns = new Dictionary<string, double>();
                 dictWidthColumns.Add("batch_no", 15.35);
                 dictWidthColumns.Add("customer_hawb", 15.35);
-                dictWidthColumns.Add("weight", 7.65);
-                dictWidthColumns.Add("e Express no#", 7.65);
-                dictWidthColumns.Add("receiver_name", 9.00);
-                dictWidthColumns.Add("receiver_phone", 13.10);
+                dictWidthColumns.Add("weight", 8.00);
+                dictWidthColumns.Add("e Express no#", 12.00);
+                dictWidthColumns.Add("receiver_name", 15.00);
+                dictWidthColumns.Add("receiver_phone", 15.10);
                 dictWidthColumns.Add("receiver_address1", 31.75);
-                dictWidthColumns.Add("receiver_city", 8.15);
-                dictWidthColumns.Add("receiver_province", 8.15);
+                dictWidthColumns.Add("receiver_city", 14.0);
+                dictWidthColumns.Add("receiver_province", 14.0);
                 dictWidthColumns.Add("receiver_Zip", 10.10);
                 dictWidthColumns.Add("s_content1", 10.00);
-                dictWidthColumns.Add("Tax_code1", 8.10);
-                dictWidthColumns.Add("s_price1", 7.0);
-                dictWidthColumns.Add("s_pieces1", 7.0);
-                dictWidthColumns.Add("s_weight1", 7.0);
+                dictWidthColumns.Add("Tax_code1", 12.10);
+                dictWidthColumns.Add("s_price1", 10.0);
+                dictWidthColumns.Add("s_pieces1", 10.0);
+                dictWidthColumns.Add("s_weight1", 10.0);
                 dictWidthColumns.Add("s_content2", 10.00);
-                dictWidthColumns.Add("Tax_code2", 8.10);
-                dictWidthColumns.Add("s_price2", 7.0);
-                dictWidthColumns.Add("s_pieces2", 7.0);
-                dictWidthColumns.Add("s_weight2", 7.0);
+                dictWidthColumns.Add("Tax_code2", 12.10);
+                dictWidthColumns.Add("s_price2", 10.0);
+                dictWidthColumns.Add("s_pieces2", 10.0);
+                dictWidthColumns.Add("s_weight2", 10.0);
                 dictWidthColumns.Add("s_content3", 10.00);
-                dictWidthColumns.Add("Tax_code3", 8.10);
-                dictWidthColumns.Add("s_price3", 7.0);
-                dictWidthColumns.Add("s_pieces3", 7.0);
-                dictWidthColumns.Add("s_weight3", 7.0);
-                dictWidthColumns.Add("declare_value", 7.75);
-                dictWidthColumns.Add("declare_currency", 7.75);
-                dictWidthColumns.Add("duty_paid", 9.0);
-                dictWidthColumns.Add("shipment_date", 10.0);
+                dictWidthColumns.Add("Tax_code3", 12.10);
+                dictWidthColumns.Add("s_price3", 10.0);
+                dictWidthColumns.Add("s_pieces3", 10.0);
+                dictWidthColumns.Add("s_weight3", 10.0);
+                dictWidthColumns.Add("declare_value", 14.00);
+                dictWidthColumns.Add("declare_currency", 14.00);
+                dictWidthColumns.Add("duty_paid", 15.0);
+                dictWidthColumns.Add("shipment_date", 15.0);
                 //dictWidthColumns.Add("time", 4.50);
-                dictWidthColumns.Add("member_name", 7.85);
+                //dictWidthColumns.Add("member_name", 7.85);
                 dictWidthColumns.Add("S.No", 11.85);
 
                 #endregion
@@ -3276,7 +3278,7 @@ namespace ExpressWeb.Controllers
         private void DataTableColumnRename_New(DataTable dt_export)
         {
             dt_export.Columns["oid"].ColumnName = "S.No";
-            dt_export.Columns["warehousingno"].ColumnName = "batch_no";
+            //dt_export.Columns["warehousingno"].ColumnName = "batch_no";
             dt_export.Columns["waybillnumber"].ColumnName = "customer_hawb";
             dt_export.Columns["settlementweight"].ColumnName = "weight";
             dt_export.Columns["singlechannel"].ColumnName = "e Express no#";
@@ -3305,7 +3307,7 @@ namespace ExpressWeb.Controllers
             dt_export.Columns["declaredcurrency"].ColumnName = "declare_currency";
             dt_export.Columns["ispayduty"].ColumnName = "duty_paid";
             dt_export.Columns["typingtype"].ColumnName = "shipment_date";
-            dt_export.Columns["sender"].ColumnName = "member_name";
+            //dt_export.Columns["sender"].ColumnName = "member_name";
         }
         #endregion
 
