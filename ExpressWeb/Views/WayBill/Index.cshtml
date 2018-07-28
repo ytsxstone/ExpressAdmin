@@ -27,16 +27,16 @@
                 <input type="file" id="p_waybill_file" name="p_waybill_file" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
                 <input type="submit" id="waybill_btnImport" value="导入" class="easyui-linkbutton" style="display:none;" />
                 <input type="hidden" name="hid_type" id="hid_type" value="0"/>
-                <a href="javascript:;" id="waybill_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
-                <a href="javascript:;" id="waybill_linkImport_new" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入新模板</a>
-                <a href="javascript:;" id="waybill_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出运单数据</a>
-                <a href="javascript:;" id="waybill_btnExport_New" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出运单数据新模板</a>
-                <a href="javascript:;" id="waybill_btnFailExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出税关号为空的物品数据</a>
+                <a href="javascript:;" id="waybill_linkImport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'" style="display:none;">导入</a>
+                <a href="javascript:;" id="waybill_linkImport_new" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入</a>
+                <a href="javascript:;" id="waybill_btnExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'" style="display:none;">导出运单数据</a>
+                <a href="javascript:;" id="waybill_btnExport_New" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出运单数据</a>
                 <a href="javascript:;" id="waybill_btnGenerate" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-reload'">生成</a>
             </div> 
         }
         @using (Html.BeginForm("Importrelation", "waybill", FormMethod.Post, new { id = "frm_relation_new", enctype = "multipart/form-data" }))
             {
+            <a href="javascript:;" id="waybill_btnFailExport" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-redo'">导出税关号为空的物品数据</a>
                 <input type="file" id="p_relation_file_new" name="p_relation_file_new" style="width:150px;border-radius:5px;border:1px solid #95B8E7" />
                 <input type="submit" id="relation_btnImport_new" value="导入对应关系" class="easyui-linkbutton" style="display:none;" />
                 <a href="javascript:;" id="relation_linkImport_new" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-undo'">导入对应关系</a>
