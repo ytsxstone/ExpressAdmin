@@ -446,6 +446,8 @@ namespace ExpressCommon
                 errorStyle2.ForegroundColor = System.Drawing.Color.Red;
                 errorStyle2.Pattern = Aspose.Cells.BackgroundType.Solid;
 
+                var array = new string[]{ "序号","参考编号", "e特快单号", "收件人姓名", "收件人电话", "收件人地址 1", "收件人城市", "收件人省份", "邮编", "货物名称 1", "税则号 1", "单价 1", "件数 1", "单个重量 1", "货物名称 2", "税则号 2", "单价 2", "件数 2", "单个重量 2", "货物名称 3", "税则号 3", "单价 3", "件数 3", "单个重量 3", "申报货币", "申报价值", "总重", "运单日期", "DDP/DDU", "客户名称", "入仓号" };
+
                 int rowscount = dt.Rows.Count;
                 for (int col = 0; col < dt.Columns.Count; col++)
                 {
@@ -467,6 +469,10 @@ namespace ExpressCommon
                     //设置列宽
                     ws.Cells.SetColumnWidth(col, dictWidthColumns[dt.Columns[col].Caption]);
                 }
+                for (int i = 0; i < array.Length; i++)
+                {
+                    ws.Cells[1, i].PutValue(array[i]);
+                }
                 for (int col = 0; col < dt.Columns.Count; col++)
                 {
                     //设置内容行文本水平显示方式
@@ -479,60 +485,60 @@ namespace ExpressCommon
                     for (int row = 0; row < rowscount; row++)
                     {
                         styleFlag = true;
-                        ws.Cells[row + 1, col].PutValue(dt.Rows[row].ItemArray[col].ToString());
+                        ws.Cells[row + 2, col].PutValue(dt.Rows[row].ItemArray[col].ToString());
 
                         //设置内容行样式
-                        ws.Cells[row + 1, col].SetStyle(contentStyle);
+                        ws.Cells[row + 2, col].SetStyle(contentStyle);
 
                         //物品名称为空
                         if (dt.Columns[col].Caption == "s_content1" && string.IsNullOrEmpty(dt.Rows[row].ItemArray[col].ToString()))
                         {
                             styleFlag = false;
-                            ws.Cells[row + 1, col].SetStyle(errorStyle2);
+                            ws.Cells[row + 2, col].SetStyle(errorStyle2);
                         }
                         //结算重量是否超过10kg
                         if (dt.Columns[col].Caption == "weight" && !string.IsNullOrEmpty(dt.Rows[row].ItemArray[col].ToString()) && Convert.ToDecimal(dt.Rows[row].ItemArray[col]) > 10m)
                         {
                             styleFlag = false;
-                            ws.Cells[row + 1, col].SetStyle(errorStyle2);
+                            ws.Cells[row + 2, col].SetStyle(errorStyle2);
                         }
                         //物品名称不为空, 税关号为空
                         if (dt.Columns[col].Caption == "Tax_code1" && string.IsNullOrEmpty(dt.Rows[row].ItemArray[col].ToString()) && !string.IsNullOrEmpty(dt.Rows[row].ItemArray[col - 1].ToString()))
                         {
                             styleFlag = false;
-                            ws.Cells[row + 1, col].SetStyle(errorStyle2);
+                            ws.Cells[row + 2, col].SetStyle(errorStyle2);
                         }
                         if (dt.Columns[col].Caption == "Tax_code2" && string.IsNullOrEmpty(dt.Rows[row].ItemArray[col].ToString()) && !string.IsNullOrEmpty(dt.Rows[row].ItemArray[col - 1].ToString()))
                         {
                             styleFlag = false;
-                            ws.Cells[row + 1, col].SetStyle(errorStyle2);
+                            ws.Cells[row + 2, col].SetStyle(errorStyle2);
                         }
                         if (dt.Columns[col].Caption == "Tax_code3" && string.IsNullOrEmpty(dt.Rows[row].ItemArray[col].ToString()) && !string.IsNullOrEmpty(dt.Rows[row].ItemArray[col - 1].ToString()))
                         {
                             styleFlag = false;
-                            ws.Cells[row + 1, col].SetStyle(errorStyle2);
+                            ws.Cells[row + 2, col].SetStyle(errorStyle2);
                         }
                         //收件地邮编为空或不是有效的邮编
                         if (dt.Columns[col].Caption == "receiver_Zip" && (string.IsNullOrEmpty(dt.Rows[row].ItemArray[col].ToString()) || !Regex.IsMatch(dt.Rows[row].ItemArray[col].ToString(), @"^\d{6}$")))
                         {
                             styleFlag = false;
-                            ws.Cells[row + 1, col].SetStyle(errorStyle2);
+                            ws.Cells[row + 2, col].SetStyle(errorStyle2);
                         }
                         //收件人电话为空或不是有效的11位手机号码
                         if (dt.Columns[col].Caption == "receiver_phone" && (string.IsNullOrEmpty(dt.Rows[row].ItemArray[col].ToString()) || !Regex.IsMatch(dt.Rows[row].ItemArray[col].ToString(), @"^1[1-9]\d{9}$")))
                         {
                             styleFlag = false;
-                            ws.Cells[row + 1, col].SetStyle(errorStyle2);
+                            ws.Cells[row + 2, col].SetStyle(errorStyle2);
                         }
                         //代付税金
                         if (dt.Columns[col].Caption == "duty_paid")
                         {
                             if (dt.Rows[row].ItemArray[col].ToString().Equals("1"))
                             {
-                                ws.Cells[row + 1, col].PutValue("Yes");
+                                ws.Cells[row + 2, col].PutValue("Yes");
                             }
                             else {
-                                ws.Cells[row + 1, col].PutValue("No");
+                                ws.Cells[row + 2, col].PutValue("No");
                             }
                         }
                         //税金超出允许范围
@@ -540,16 +546,16 @@ namespace ExpressCommon
                         //设置运单编号单元格样式
                         if (!styleFlag)
                         {
-                            ws.Cells[row + 1, 1].SetStyle(errorStyle1);
+                            ws.Cells[row + 2, 1].SetStyle(errorStyle1);
                         }
 
                         //设置单元格数值列属性
                         if (numberColumns.Contains(dt.Columns[col].Caption))
                         {
                             //继承原有样式
-                            Aspose.Cells.Style numberStyle = ws.Cells[row + 1, col].GetStyle();
+                            Aspose.Cells.Style numberStyle = ws.Cells[row + 2, col].GetStyle();
                             numberStyle.Number = 4;
-                            ws.Cells[row + 1, col].SetStyle(numberStyle);
+                            ws.Cells[row + 2, col].SetStyle(numberStyle);
                         }
                     }
                 }
