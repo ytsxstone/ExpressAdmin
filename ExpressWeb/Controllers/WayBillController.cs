@@ -1412,11 +1412,11 @@ namespace ExpressWeb.Controllers
             string strSql = $@"select goodsname, '' taxnumber, '' newname1, '' newname2, '' newname3, '' newname4, '' newname5, '' newname6, '' newname7,
                     '' newname8, '' newname9, '' newname10, '' newname11, '' newname12, '' newname13, '' newname14, '' newname15, '' newname16, '' newname17,
                     '' newname18, '' newname19, '' newname20 from (
-                    select goodsname1 as goodsname from waybill where goodsname1 <> '' and customsno1 = '' {searchWhere}
+                    select goodsname1 as goodsname from waybill where exportbatch='' and goodsname1 <> '' and customsno1 = '' {searchWhere}
                     union all 
-                    select goodsname2 as goodsname from waybill where goodsname2 <> '' and customsno2 = '' {searchWhere}
+                    select goodsname2 as goodsname from waybill where exportbatch='' and goodsname2 <> '' and customsno2 = '' {searchWhere}
                     union all 
-                    select goodsname3 as goodsname from waybill where goodsname3 <> '' and customsno3 = '' {searchWhere}) as a 
+                    select goodsname3 as goodsname from waybill where exportbatch='' and goodsname3 <> '' and customsno3 = '' {searchWhere}) as a 
                 group by goodsname 
                 order by goodsname asc";
 
