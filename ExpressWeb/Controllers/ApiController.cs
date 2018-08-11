@@ -1,5 +1,6 @@
 ﻿using ExpressCommon;
 using ExpressModel;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -24,18 +25,18 @@ namespace ExpressWeb.Controllers
         int minTaxValue = 45, maxTaxValue = 50;
 
         //必填项
-        readonly string[] requireArray_New = new string[] { "weight", "receiver_name", "receiver_address1",
-                "receiver_city", "s_content1", "s_pieces1"};
+        readonly string[] requireArray_New = new string[] { "总重", "收件人姓名", "收件人地址 1",
+                "收件人城市", "货物名称 1", "件数 1"};
 
         //价格、重量验证, 只能输入数字, 并且最多包含两位小数
-        readonly string[] decimalArray_New = new string[] { "weight", "s_price1",  "s_price2",
-                 "s_price3", "declare_value"};
+        readonly string[] decimalArray_New = new string[] { "总重", "单价 1",  "单价 2",
+                 "单价 3", "申报价值"};
 
         //件数, 只能输入正整数                                                                                                                                                                                                                                                                   
-        readonly string[] integerArray_New = new string[] { "s_pieces1", "s_pieces2", "s_pieces3" };
+        readonly string[] integerArray_New = new string[] { "件数 1", "件数 2", "件数 3" };
 
         //物品名称验证, 是否为违禁物品
-        readonly string[] prohibitedArray_New = new string[] { "s_content1", "s_content2", "s_content3" };
+        readonly string[] prohibitedArray_New = new string[] { "货物名称 1", "货物名称 2", "货物名称 3" };
 
         /// <summary>
         /// 用户名检测  通过则true,不通过则false
@@ -65,7 +66,7 @@ namespace ExpressWeb.Controllers
         {
             try
             {
-                var loginAccount = "导入数据";
+                var loginAccount = "管理员";
 
                 var username = fc["name"];
                 if (string.IsNullOrWhiteSpace(username))
@@ -104,16 +105,15 @@ namespace ExpressWeb.Controllers
 
                 //判断是否存在入仓号或则运单编号为空记录
                 DataRow[] emptyRows = (from p in dt_import.AsEnumerable()
-                                       where string.IsNullOrWhiteSpace(p.Field<string>("batch_no")) ||
-                                             string.IsNullOrWhiteSpace(p.Field<string>("customer_hawb"))
+                                       where string.IsNullOrWhiteSpace(p.Field<string>("参考编号"))
                                        select p).ToArray();
                 if (emptyRows.Count() > 0)
                 {
-                    return Json(new JsonData() { Status = false, Msg = "推送记录中存在batch_no或customer_hawb为空的记录，导入失败！" });
+                    return Json(new JsonData() { Status = false, Msg = "推送记录中存在参考编号为空的记录，导入失败！" });
                 }
 
                 //判断是否存在运单编号重复的情况
-                if (!IsRepeatByColumnName(dt_import, "customer_hawb"))
+                if (!IsRepeatByColumnName(dt_import, "参考编号"))
                 {
                     return Json(new JsonData() { Status = false, Msg = "推送记录中存在参考编号重复的记录，导入失败！" });
                 }
@@ -154,7 +154,7 @@ namespace ExpressWeb.Controllers
 
                 #region 入库
                 //导入批次
-                string importBatchName = "import_new_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                string importBatchName = "import_interface_" + username + "_" + DateTime.Now.ToString("yyyyMMddHHmmss");
 
                 //生成运单数据  如重命名物品名称、关联地区信息、商品税则号、完税价格
                 string emptyTaxMsg = GenerateWaybillData_New(dt_import, dt_taxnumber, dt_relation, dt_area);
@@ -167,39 +167,39 @@ namespace ExpressWeb.Controllers
                     //添加到list集合
                     listWaybill.Add(new ModWayBill()
                     {
-                        WarehousingNo = row["batch_no"].ToString().Trim(),
-                        WaybillNumber = row["customer_hawb"].ToString().Trim(),
-                        SettlementWeight = string.IsNullOrWhiteSpace(row["weight"].ToString()) ? 0 : Convert.ToDecimal(row["weight"]),
-                        SingleChannel = row["e_Express_no"].ToString().Trim(),
-                        Recipient = row["receiver_name"].ToString().Trim(),
-                        RecPhone = row["receiver_phone"].ToString().Trim(),
-                        RecAddress = row["receiver_address1"].ToString().Trim(),
-                        RecCity = row["receiver_city"].ToString().Trim(),
-                        RecProvince = row["receiver_province"].ToString().Trim(),
-                        RecPostcode = row["receiver_Zip"].ToString().Trim(),
-                        GoodsName1 = row["s_content1"].ToString().Trim(),
-                        CustomsNo1 = row["Tax_code1"].ToString().Trim(),
-                        Price1 = string.IsNullOrWhiteSpace(row["s_price1"].ToString()) ? 0 : Convert.ToDecimal(row["s_price1"]),
-                        PieceNum1 = string.IsNullOrWhiteSpace(row["s_pieces1"].ToString()) ? 0 : Convert.ToInt32(row["s_pieces1"]),
-                        PieceWeight1 = string.IsNullOrWhiteSpace(row["s_weight1"].ToString()) ? 0 : Convert.ToDecimal(row["s_weight1"]),
-                        GoodsName2 = row["s_content2"].ToString().Trim(),
-                        CustomsNo2 = row["Tax_code2"].ToString().Trim(),
-                        Price2 = string.IsNullOrWhiteSpace(row["s_price2"].ToString()) ? 0 : Convert.ToDecimal(row["s_price2"]),
-                        PieceNum2 = string.IsNullOrWhiteSpace(row["s_pieces2"].ToString()) ? 0 : Convert.ToInt32(row["s_pieces2"]),
-                        PieceWeight2 = string.IsNullOrWhiteSpace(row["s_weight2"].ToString()) ? 0 : Convert.ToDecimal(row["s_weight2"]),
-                        GoodsName3 = row["s_content3"].ToString().Trim(),
-                        CustomsNo3 = row["Tax_code3"].ToString().Trim(),
-                        Price3 = string.IsNullOrWhiteSpace(row["s_price3"].ToString()) ? 0 : Convert.ToDecimal(row["s_price3"]),
-                        PieceNum3 = string.IsNullOrWhiteSpace(row["s_pieces3"].ToString()) ? 0 : Convert.ToInt32(row["s_pieces3"]),
-                        PieceWeight3 = string.IsNullOrWhiteSpace(row["s_weight3"].ToString()) ? 0 : Convert.ToDecimal(row["s_weight3"]),
-                        DeclaredValue = string.IsNullOrWhiteSpace(row["declare_value"].ToString()) ? 0 : Convert.ToDecimal(row["declare_value"]),
-                        DeclaredCurrency = row["declare_currency"].ToString().Trim(),
-                        IsPayDuty = string.IsNullOrWhiteSpace(row["duty_paid"].ToString()) ? 0 : (row["duty_paid"].ToString().Equals("Yes") ? 1 : 0),
-                        TypingType = row["shipment_date"].ToString().Trim(),
+                        WarehousingNo = row["入仓号"].ToString().Trim(),
+                        WaybillNumber = row["参考编号"].ToString().Trim(),
+                        SettlementWeight = string.IsNullOrWhiteSpace(row["总重"].ToString()) ? 0 : Convert.ToDecimal(row["总重"]),
+                        SingleChannel = row["e特快单号"].ToString().Trim(),
+                        Recipient = row["收件人姓名"].ToString().Trim(),
+                        RecPhone = row["收件人电话"].ToString().Trim(),
+                        RecAddress = row["收件人地址 1"].ToString().Trim(),
+                        RecCity = row["收件人城市"].ToString().Trim(),
+                        RecProvince = row["收件人省份"].ToString().Trim(),
+                        RecPostcode = row["邮编"].ToString().Trim(),
+                        GoodsName1 = row["货物名称 1"].ToString().Trim(),
+                        CustomsNo1 = row["税则号 1"].ToString().Trim(),
+                        Price1 = string.IsNullOrWhiteSpace(row["单价 1"].ToString()) ? 0 : Convert.ToDecimal(row["单价 1"]),
+                        PieceNum1 = string.IsNullOrWhiteSpace(row["件数 1"].ToString()) ? 0 : Convert.ToInt32(row["件数 1"]),
+                        PieceWeight1 = string.IsNullOrWhiteSpace(row["单个重量 1"].ToString()) ? 0 : Convert.ToDecimal(row["单个重量 1"]),
+                        GoodsName2 = row["货物名称 2"].ToString().Trim(),
+                        CustomsNo2 = row["税则号 2"].ToString().Trim(),
+                        Price2 = string.IsNullOrWhiteSpace(row["单价 2"].ToString()) ? 0 : Convert.ToDecimal(row["单价 2"]),
+                        PieceNum2 = string.IsNullOrWhiteSpace(row["件数 2"].ToString()) ? 0 : Convert.ToInt32(row["件数 2"]),
+                        PieceWeight2 = string.IsNullOrWhiteSpace(row["单个重量 2"].ToString()) ? 0 : Convert.ToDecimal(row["单个重量 2"]),
+                        GoodsName3 = row["货物名称 3"].ToString().Trim(),
+                        CustomsNo3 = row["税则号 3"].ToString().Trim(),
+                        Price3 = string.IsNullOrWhiteSpace(row["单价 3"].ToString()) ? 0 : Convert.ToDecimal(row["单价 3"]),
+                        PieceNum3 = string.IsNullOrWhiteSpace(row["件数 3"].ToString()) ? 0 : Convert.ToInt32(row["件数 3"]),
+                        PieceWeight3 = string.IsNullOrWhiteSpace(row["单个重量 3"].ToString()) ? 0 : Convert.ToDecimal(row["单个重量 3"]),
+                        DeclaredValue = string.IsNullOrWhiteSpace(row["申报价值"].ToString()) ? 0 : Convert.ToDecimal(row["申报价值"]),
+                        DeclaredCurrency = row["申报货币"].ToString().Trim(),
+                        IsPayDuty = string.IsNullOrWhiteSpace(row["代付税金"].ToString()) ? 0 : (row["代付税金"].ToString().ToLower().Equals("yes") ? 1 : 0),
+                        TypingType = row["提单日期"].ToString().Trim(),
                         Insured = 0,
                         Destination = "",
                         DestinationPoint = "",
-                        Sender = row["member_name"].ToString(),
+                        Sender = "",
                         SendPhone = "",
                         SendAddress = "",
                         Freight = 0,
@@ -399,11 +399,11 @@ namespace ExpressWeb.Controllers
         private bool DataTableFieldValid_New(DataTable dt_import, out string fieldMsg)
         {
             List<string> fieldList = new List<string>() {
-               "S.No", "customer_hawb", "weight", "receiver_name", "receiver_phone", "receiver_address1",
-               "receiver_city", "receiver_province", "receiver_Zip", "s_content1", "Tax_code1",
-               "s_price1", "s_pieces1", "s_weight1", "s_content2", "Tax_code2",
-               "s_price2", "s_pieces2", "s_weight2", "s_content3", "Tax_code3",
-               "s_price3", "s_pieces3", "s_weight3", "declare_value", "declare_currency", "duty_paid", "shipment_date","member_name"
+               "序号", "参考编号", "总重", "收件人姓名", "收件人电话", "收件人地址 1",
+               "收件人城市", "收件人省份", "邮编", "货物名称 1", "税则号 1",
+               "单价 1", "件数 1", "单个重量 1", "货物名称 2", "税则号 2",
+               "单价 2", "件数 2", "单个重量 2", "货物名称 3", "税则号 3",
+               "单价 3", "件数 3", "单个重量 3", "申报价值", "申报货币", "代付税金", "提单日期"
             };
 
             //判断字段是否都存在于推送的datatable中
@@ -447,7 +447,7 @@ namespace ExpressWeb.Controllers
                    valueDecError = string.Empty,
                    valueIntError = string.Empty,
                    valueProError = string.Empty;
-            string validMsg = "参考编号：" + row["customer_hawb"].ToString().Trim();
+            string validMsg = "参考编号：" + row["参考编号"].ToString().Trim();
 
             //必填项验证
             foreach (string col in requireArray_New)
@@ -458,29 +458,29 @@ namespace ExpressWeb.Controllers
                 }
             }
             //若 貨物名稱 2 有内容, 则 件數 2 必填
-            if ((!string.IsNullOrWhiteSpace(row["s_content2"].ToString())
-                && string.IsNullOrWhiteSpace(row["s_pieces2"].ToString()))
-                || (!string.IsNullOrWhiteSpace(row["s_content2"].ToString())
-                && !string.IsNullOrWhiteSpace(row["s_pieces2"].ToString())
-                && Regex.IsMatch(row["s_pieces2"].ToString().Trim(), @"^(0|\+?[1-9][0-9]*)$")
-                && Convert.ToInt32(row["s_pieces2"].ToString().Trim()) == 0))
+            if ((!string.IsNullOrWhiteSpace(row["货物名称 2"].ToString())
+                && string.IsNullOrWhiteSpace(row["件数 2"].ToString()))
+                || (!string.IsNullOrWhiteSpace(row["货物名称 2"].ToString())
+                && !string.IsNullOrWhiteSpace(row["件数 2"].ToString())
+                && Regex.IsMatch(row["件数 2"].ToString().Trim(), @"^(0|\+?[1-9][0-9]*)$")
+                && Convert.ToInt32(row["件数 2"].ToString().Trim()) == 0))
             {
-                valueEmpty += "s_pieces2，";
+                valueEmpty += "件数 2，";
             }
             //若 貨物名稱 3 有内容, 则 单件件数③ 必填
-            if ((!string.IsNullOrWhiteSpace(row["s_content3"].ToString())
-                && string.IsNullOrWhiteSpace(row["s_pieces3"].ToString()))
-                || (!string.IsNullOrWhiteSpace(row["s_content3"].ToString())
-                && !string.IsNullOrWhiteSpace(row["s_pieces3"].ToString())
-                && Regex.IsMatch(row["s_pieces3"].ToString().Trim(), @"^(0|\+?[1-9][0-9]*)$")
-                && Convert.ToInt32(row["s_pieces3"].ToString().Trim()) == 0))
+            if ((!string.IsNullOrWhiteSpace(row["货物名称 3"].ToString())
+                && string.IsNullOrWhiteSpace(row["件数 3"].ToString()))
+                || (!string.IsNullOrWhiteSpace(row["货物名称 3"].ToString())
+                && !string.IsNullOrWhiteSpace(row["件数 3"].ToString())
+                && Regex.IsMatch(row["件数 3"].ToString().Trim(), @"^(0|\+?[1-9][0-9]*)$")
+                && Convert.ToInt32(row["件数 3"].ToString().Trim()) == 0))
             {
-                valueEmpty += "s_pieces3，";
+                valueEmpty += "件数 3，";
             }
             //若 物品名称③ 有内容, 则 物品名称② 必须要有内容
-            if (!string.IsNullOrWhiteSpace(row["s_content3"].ToString()) && string.IsNullOrWhiteSpace(row["s_content2"].ToString()))
+            if (!string.IsNullOrWhiteSpace(row["货物名称 3"].ToString()) && string.IsNullOrWhiteSpace(row["货物名称 2"].ToString()))
             {
-                valueEmpty += "s_content2，";
+                valueEmpty += "货物名称 2，";
             }
             valueEmpty = valueEmpty.TrimEnd('，');
 
@@ -629,11 +629,11 @@ namespace ExpressWeb.Controllers
         private string GenerateWaybillData_New(DataTable dt_import, DataTable dt_taxnumber, DataTable dt_relation, DataTable dt_area)
         {
             //需要关联税则号的列
-            string[] relevanceArray = new string[] { "s_content1", "s_content2", "s_content3" };
-            string[] taxArray = new string[] { "Tax_code1", "Tax_code2", "Tax_code3" };
-            string[] priceArray = new string[] { "s_price1", "s_price2", "s_price3" };
-            string[] pieceNumArray = new string[] { "s_pieces1", "s_pieces2", "s_pieces3" };
-            string[] pieceWeightArray = new string[] { "s_weight1", "s_weight2", "s_weight3" };
+            string[] relevanceArray = new string[] { "货物名称 1", "货物名称 2", "货物名称 3" };
+            string[] taxArray = new string[] { "税则号 1", "税则号 2", "税则号 3" };
+            string[] priceArray = new string[] { "单价 1", "单价 2", "单价 3" };
+            string[] pieceNumArray = new string[] { "件数 1", "件数 2", "件数 3" };
+            string[] pieceWeightArray = new string[] { "单个重量 1", "单个重量 2", "单个重量 3" };
 
             StringBuilder emptySb = new StringBuilder();
             string validMsg = string.Empty;
@@ -647,18 +647,18 @@ namespace ExpressWeb.Controllers
             {
                 //根据城市匹配省份、邮编信息
                 DataRow[] areaRows = (from p in dt_area.AsEnumerable()
-                                      where p.Field<string>("areacity").Contains(row["receiver_city"].ToString().Trim())
+                                      where p.Field<string>("areacity").Contains(row["收件人城市"].ToString().Trim())
                                       select p).ToArray();
                 if (areaRows.Count() > 0)
                 {
-                    row["receiver_city"] = areaRows[0]["areacity"].ToString();
-                    row["receiver_province"] = areaRows[0]["areaprovince"].ToString();
-                    row["receiver_Zip"] = areaRows[0]["areapostcode"].ToString();
+                    row["收件人城市"] = areaRows[0]["areacity"].ToString();
+                    row["收件人省份"] = areaRows[0]["areaprovince"].ToString();
+                    row["邮编"] = areaRows[0]["areapostcode"].ToString();
                 }
 
                 //重命名物品名称、关联税关号、匹配完税价格
                 flag = true;
-                validMsg = "参考编号：" + row["customer_hawb"].ToString() + "<br/>&nbsp;&nbsp;";
+                validMsg = "参考编号：" + row["参考编号"].ToString() + "<br/>&nbsp;&nbsp;";
 
                 for (int i = 0; i < relevanceArray.Length; i++)
                 {
@@ -769,13 +769,140 @@ namespace ExpressWeb.Controllers
                 {
                     return Json(new { Success = false, Msg = "用户名称验证不通过" });
                 }
+                #region 查询条件处理
 
-                return Json(new { Success = true, Msg = "导出成功", data = "" });
+                string searchWhere = "";
+                searchWhere += " and exportbatch = ''";
+                searchWhere += $" and importbatch like 'import_interface_" + username + "_%'";
+
+                #endregion
+
+                //获取导出数据
+                DataTable dt_export = GetExportData(searchWhere);
+                if (dt_export != null && dt_export.Rows.Count > 0)
+                {
+                    //记录导出数据记录的主键ID
+                    string oidStr = string.Empty;
+                    foreach (DataRow row in dt_export.Rows)
+                    {
+                        oidStr += row["oid"].ToString() + ",";
+                    }
+                    oidStr = oidStr.TrimEnd(',');
+
+                    //删除oid, tax, exportbatch列, 不需要导出
+                    //dt_export.Columns.Remove("warehousingno");
+                    dt_export.Columns.Remove("tax");
+                    dt_export.Columns.Remove("importbatch");
+                    dt_export.Columns.Remove("exportbatch");
+                    dt_export.Columns.Remove("Insured");
+                    dt_export.Columns.Remove("Destination");
+                    dt_export.Columns.Remove("DestinationPoint");
+                    dt_export.Columns.Remove("SendPhone");
+                    dt_export.Columns.Remove("SendAddress");
+                    dt_export.Columns.Remove("Freight");
+                    dt_export.Columns.Remove("CustomerQuotation");
+                    dt_export.Columns.Remove("PhoneCount");
+                    dt_export.Columns.Remove("sender");
+
+                    //需要清空零值的字段集合
+                    List<string> zeroColumns = new List<string>() { "price1", "piecenum1", "pieceweight1", "price2", "piecenum2", "pieceweight2",
+                    "price3", "piecenum3", "pieceweight3" };
+
+                    //处理double类型值的显示格式
+                    dt_export = ComHelper.ConvertDataTableToString(dt_export, zeroColumns);
+
+                    //重命名列名
+                    DataTableColumnRename_New(dt_export);
+
+                    var array = new string[] { "序号", "参考编号", "e特快单号", "收件人姓名", "收件人电话", "收件人地址 1", "收件人城市", "收件人省份", "邮编", "货物名称 1", "税则号 1", "单价 1", "件数 1", "单个重量 1", "货物名称 2", "税则号 2", "单价 2", "件数 2", "单个重量 2", "货物名称 3", "税则号 3", "单价 3", "件数 3", "单个重量 3", "申报货币", "申报价值", "总重", "运单日期", "代付税金", "入仓号" };
+                    var newRow = dt_export.NewRow();
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        newRow[i] = array[i];
+                    }
+                    dt_export.Rows.InsertAt(newRow, 0);
+
+                    //更新运单表的数据的导出批次
+                    string exportBatchName = "export_interface_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                    string strSql = string.Format(@"update waybill set exportbatch = '{0}' where oid in ({1})", exportBatchName, oidStr);
+                    SQLHelper.ExecuteNonQuery(SQLHelper.defConnStr, CommandType.Text, strSql, null);
+
+                    JsonSerializerSettings setting = new JsonSerializerSettings()
+                    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                    };
+
+                    var ret = JsonConvert.SerializeObject(dt_export, setting);
+                    
+                    return Json(new { Success = true, Msg = "导出成功", data = ret });
+                }
+                else
+                {
+                    return Json(new { Success = true, Msg = "无数据", data = "" });
+                }
             }
             catch (Exception ex)
             {
                 return Json(new { Success = false, Msg = ex.Message, data = "" });
             }
+        }
+
+        /// <summary>
+        /// 获取导出数据
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        private DataTable GetExportData(string searchtext)
+        {
+            //查询SQL
+            string strSql = string.Format(@"select oid,waybillnumber,singlechannel,recipient,recphone,recaddress,reccity,
+                        recprovince,recpostcode,goodsname1,customsno1,price1,piecenum1,pieceweight1,goodsname2,customsno2,price2,piecenum2,pieceweight2,
+                        goodsname3,customsno3,price3,piecenum3,pieceweight3,declaredcurrency,declaredvalue,settlementweight,typingtype,ispayduty,insured,destination,destinationpoint,
+                        sendphone,sendaddress,freight,customerquotation,tax,phonecount,importbatch,exportbatch,sender,warehousingno from waybill 
+                        where 1=1 {0} order by created_time desc", searchtext);
+
+            //获取数据集
+            DataSet ds = SQLHelper.ExecuteDataset(SQLHelper.defConnStr, CommandType.Text, strSql, null);
+
+            return ds.Tables[0];
+        }
+
+        /// <summary>
+        /// 导出新列
+        /// </summary>
+        /// <param name="dt_export"></param>
+        private void DataTableColumnRename_New(DataTable dt_export)
+        {
+            dt_export.Columns["oid"].ColumnName = "S.No";
+            dt_export.Columns["warehousingno"].ColumnName = "batch_no";
+            dt_export.Columns["waybillnumber"].ColumnName = "customer_hawb";
+            dt_export.Columns["settlementweight"].ColumnName = "weight";
+            dt_export.Columns["singlechannel"].ColumnName = "e Express no#";
+            dt_export.Columns["recipient"].ColumnName = "receiver_name";
+            dt_export.Columns["recphone"].ColumnName = "receiver_phone";
+            dt_export.Columns["recaddress"].ColumnName = "receiver_address1";
+            dt_export.Columns["reccity"].ColumnName = "receiver_city";
+            dt_export.Columns["recprovince"].ColumnName = "receiver_province";
+            dt_export.Columns["recpostcode"].ColumnName = "receiver_Zip";
+            dt_export.Columns["goodsname1"].ColumnName = "s_content1";
+            dt_export.Columns["customsno1"].ColumnName = "Tax_code1";
+            dt_export.Columns["price1"].ColumnName = "s_price1";
+            dt_export.Columns["piecenum1"].ColumnName = "s_pieces1";
+            dt_export.Columns["pieceweight1"].ColumnName = "s_weight1";
+            dt_export.Columns["goodsname2"].ColumnName = "s_content2";
+            dt_export.Columns["customsno2"].ColumnName = "Tax_code2";
+            dt_export.Columns["price2"].ColumnName = "s_price2";
+            dt_export.Columns["piecenum2"].ColumnName = "s_pieces2";
+            dt_export.Columns["pieceweight2"].ColumnName = "s_weight2";
+            dt_export.Columns["goodsname3"].ColumnName = "s_content3";
+            dt_export.Columns["customsno3"].ColumnName = "Tax_code3";
+            dt_export.Columns["price3"].ColumnName = "s_price3";
+            dt_export.Columns["piecenum3"].ColumnName = "s_pieces3";
+            dt_export.Columns["pieceweight3"].ColumnName = "s_weight3";
+            dt_export.Columns["declaredvalue"].ColumnName = "declare_value";
+            dt_export.Columns["declaredcurrency"].ColumnName = "declare_currency";
+            dt_export.Columns["ispayduty"].ColumnName = "duty_paid";
+            dt_export.Columns["typingtype"].ColumnName = "shipment_date";
+            //dt_export.Columns["sender"].ColumnName = "member_name";
         }
     }
 }

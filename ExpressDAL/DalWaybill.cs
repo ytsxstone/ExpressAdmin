@@ -49,7 +49,7 @@ namespace ExpressDAL
                 }
                 else
                 {
-                    searchWhere += $" and importbatch = '{importBatch}'";
+                    searchWhere += $" and importbatch = '{importBatch}'";                    
                 }
             }
 

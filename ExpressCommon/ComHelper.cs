@@ -648,6 +648,17 @@ namespace ExpressCommon
                             newDtRow[col.ColumnName] = "";
                         }
                     }
+                    if (col.ColumnName.Equals("ispayduty"))
+                    {
+                        if (newDtRow[col.ColumnName].ToString()=="1")
+                        {
+                            newDtRow[col.ColumnName] = "Yes";
+                        }
+                        else
+                        {
+                            newDtRow[col.ColumnName] = "No";
+                        }
+                    }
                 }
                 dt_result.Rows.Add(newDtRow);
             }
