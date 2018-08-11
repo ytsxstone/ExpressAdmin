@@ -18,7 +18,7 @@ namespace ExpressWeb.Controllers
     /// <summary>
     /// 导入导出api
     /// </summary>
-    public class ApiController : BaseController
+    public class ApiController : Controller
     {
         public string ArrayName = string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["nameArray"]) ? "" : ConfigurationManager.AppSettings["nameArray"];
         int minTaxValue = 45, maxTaxValue = 50;
@@ -31,7 +31,7 @@ namespace ExpressWeb.Controllers
         readonly string[] decimalArray_New = new string[] { "weight", "s_price1",  "s_price2",
                  "s_price3", "declare_value"};
 
-        //件数, 只能输入正整数
+        //件数, 只能输入正整数                                                                                                                                                                                                                                                                   
         readonly string[] integerArray_New = new string[] { "s_pieces1", "s_pieces2", "s_pieces3" };
 
         //物品名称验证, 是否为违禁物品
