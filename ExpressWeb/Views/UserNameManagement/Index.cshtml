@@ -1,0 +1,257 @@
+﻿
+@{
+    Layout = null;
+}
+<style>
+    .select {
+        border-radius: 5px;
+        height: 22px;
+        line-height: 22px;
+        border: 1px solid #95B8E7;
+    }
+</style>
+
+<div id="usernamemge_Panel">
+    <div id="usernamemge_Header" style="padding: 5px;">
+        <div id="usernamemge_Toolbar" class="datagrid-toolbar" style="height: 30px; line-height: 30px;">
+            <a href="javascript:;" id="usernamemge_btnAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-add'">新增</a>
+            <a href="javascript:;" id="usernamemge_btnEdit" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-edit'">修改</a>
+            <a href="javascript:;" id="usernamemge_btnDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-cancel'">删除</a>
+            <label for="usernamemge_search_name" style="margin-left: 10px;">名称：</label>
+            <input id="usernamemge_search_name" name="usernamemge_search_name" class="select searchText" style="width: 135px" maxlength="20" />
+            <a href="javascript:;" id="usernamemge_btnQuery" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-search'" style="margin-left: 5px;">查询</a>
+        </div>
+    </div>
+    <div id="usernamemge_Body" style="padding: 0px 5px 5px 5px;">
+        <table id="usernamemge_InfoList" style="min-height:585px;"></table>
+    </div>
+</div>
+
+<!--对话框-->
+<div id="usernamemge_dlg" class="easyui-dialog" data-options="closed:true, buttons:'#usernamemge_dlgButtons'">
+    <form id="usernamemge_Form" method="post" enctype="multipart/form-data">
+        <table style="margin-left: 30px; " cellspacing="7">
+            <tr>
+                <td style="text-align: right;">用户名：</td>
+                <td>
+                    <input id="username" required validtype="length[2,50]" class="easyui-validatebox text1" style="width: 200px;" />
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="id" value="" />
+    </form>
+</div>
+<div id="usernamemge_dlgButtons">
+    <a href="javascript:;" id="usernamemge_Ok" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">保存</a>
+    <a href="javascript:;" id="usernamemge_Cancel" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">关闭</a>
+</div>
+
+<script>
+    var usernamemgeFlag = 0;
+    var queryParams = {};
+
+    $(function () {
+        LoadPageusernamemgeData();
+
+        //新增
+        $("#usernamemge_btnAdd").on("click", function () {
+            usernamemgeFlag = 0;
+            Window.openSmallDialog($("#usernamemge_dlg"), "添加用户名", 'icon-add', disposeusernamemge);
+            bindEventusernamemge();
+        });
+
+        //修改
+        $("#usernamemge_btnEdit").on("click", function () {
+            usernamemgeFlag = 1;
+            var row = $("#usernamemge_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                bindEventusernamemge();
+                $("#id").val(row[0].id);
+                $("#username").val(row[0].username);
+                Window.openSmallDialog($("#usernamemge_dlg"), "修改用户名", 'icon-add', disposeusernamemge);
+            }
+            else {
+                $.messager.alert("提示", "请选择行！");
+            }
+        });
+
+         //删除
+        $("#usernamemge_btnDel").on("click", function () {
+            var row = $("#usernamemge_InfoList").datagrid("getSelections");
+            if (row.length > 0) {
+                $.messager.confirm("提示", "您确定要删除吗？", function (data) {
+                    if (data) {
+                        //获取选中的id值集合
+                        var arrayIds = [];
+                        for (var i = 0; i < row.length; i++) {
+                            arrayIds.push(row[i].id)
+                        }
+
+                        $.post('@Url.Action("Delete", "UserNameManagement")', { ids: arrayIds.join(',') }, function (data1) {
+                            if (data1) {
+                                $.messager.alert("提示", data1.Msg);
+                                LoadPageusernamemgeData();
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                $.messager.alert("提示","请选择行！");
+            }
+        });
+
+        //查询
+        $("#usernamemge_btnQuery").on("click", function () {
+            LoadPageusernamemgeData();
+        });
+        
+        ///禁止回车触发form提交
+        $("#usernamemge_search_name").keypress(function (event) {
+            var e = event || window.event;
+            if (e.keyCode == 13) {
+                return false;
+            }
+        });
+    });
+    
+    var disposeusernamemge = function () {
+        $("#usernamemge_Ok").unbind("click");
+        $("#usernamemge_Cancel").unbind("click");
+    };
+
+    //新增保存
+    var addDatausernamemge = function () {
+         var isValid = $("#usernamemge_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            username: $("#username").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Create", "UserNameManagement")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#usernamemge_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageusernamemgeData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //修改保存
+    var editDatausernamemge = function () {
+         var isValid = $("#usernamemge_Form").form('validate');
+        if (!isValid) {
+            return false;
+        }
+
+        //获取参数
+        var params = {
+            username: $("#username").val(),
+            id:$("#id").val()
+        };
+
+        //提交数据
+        Ajax.Post("@Url.Action("Update", "UserNameManagement")", params, function (result) {
+            //判断状态
+            if (result.Status) {
+                Window.closeDialog($("#usernamemge_dlg"));
+                $.messager.alert("提示", result.Msg);
+                //加载数据
+                LoadPageusernamemgeData();
+            } else {
+                $.messager.alert("提示", result.Msg);
+            }
+        });
+    };
+
+    //绑定事件
+    var bindEventusernamemge = function () {
+        //确定按钮事件
+        $("#usernamemge_Ok").click(function () {
+            switch (usernamemgeFlag) {
+                case 0:
+                    //新增
+                    addDatausernamemge();
+                    break;
+                case 1:
+                    //修改
+                    editDatausernamemge();
+                    break;
+                default:
+                    Window.closeDialog($("#usernamemge_dlg"));
+                    break;
+            }
+        });
+
+        //关闭按钮事件
+        $("#usernamemge_Cancel").click(function () {
+            Window.closeDialog($("#usernamemge_dlg"));
+        });
+    };
+
+    //页面数据加载
+    function LoadPageusernamemgeData() {
+        queryParams.name = $("#usernamemge_search_name").val();
+
+        $("#usernamemge_InfoList").datagrid({
+            url: "@Url.Action("GetUserNameManageData", "usernamemanagement")",
+            method: "post",
+            queryParams: queryParams,
+            columns: [
+                [
+                    { field: 'ckbox', checkbox: true, width: 75, align: 'center' },
+                    { field: 'id', title: 'id', hidden: true },
+                    { field: 'username', title: '用户名', width: 125, align: 'center', sortable: true },
+                    { field: 'created', title: '创建人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'created_time', title: '创建时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                    { field: 'updated', title: '修改人', width: 100, align: 'left', sortable: true },
+                    {
+                        field: 'updated_time', title: '修改时间', width: 185, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            if (value) {
+                                var unixTimestamp = new Date(value);
+                                return unixTimestamp.toLocaleString();
+                            }
+                            else {
+                                return '';
+                            }
+                        }
+                    },
+                ]
+            ],
+            fit: true,
+            //fitColumns: true,
+            pagination: true,
+            pageNumber: 1,
+            pageSize: 20,
+            pageList: [20, 50, 100, 500],
+            singleSelect: false,
+            rownumbers: true,
+            loadMsg: "数据加载中....",
+            onLoadSuccess: function (data) {
+                sortColumn = data.sortColumn;
+                sortType = data.sortType
+
+                $(this).datagrid("fixRowNumber");
+            }
+        });
+    }
+</script>

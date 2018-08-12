@@ -164,6 +164,7 @@
     <Compile Include="Controllers\ProhibitedController.cs" />
     <Compile Include="Controllers\RelationController.cs" />
     <Compile Include="Controllers\TaxNumberController.cs" />
+    <Compile Include="Controllers\UserNameManagementController.cs" />
     <Compile Include="Controllers\WayBillController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -566,7 +567,9 @@
     <Content Include="Scripts\locale\easyui-lang-zh_TW.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\custom.js" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
@@ -588,6 +591,7 @@
     <Content Include="Views\TaxNumber\Index.cshtml" />
     <Content Include="Views\Relation\Index.cshtml" />
     <Content Include="Views\WayBill\Index.cshtml" />
+    <Content Include="Views\UserNameManagement\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

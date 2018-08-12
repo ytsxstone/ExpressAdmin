@@ -1,4 +1,5 @@
 ﻿using ExpressCommon;
+using ExpressDAL;
 using ExpressModel;
 using Newtonsoft.Json;
 using System;
@@ -21,7 +22,8 @@ namespace ExpressWeb.Controllers
     /// </summary>
     public class ApiController : Controller
     {
-        public string ArrayName = string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["nameArray"]) ? "" : ConfigurationManager.AppSettings["nameArray"];
+        DalUserNameMge dal = new DalUserNameMge();
+
         int minTaxValue = 45, maxTaxValue = 50;
 
         //必填项
@@ -37,25 +39,7 @@ namespace ExpressWeb.Controllers
 
         //物品名称验证, 是否为违禁物品
         readonly string[] prohibitedArray_New = new string[] { "货物名称 1", "货物名称 2", "货物名称 3" };
-
-        /// <summary>
-        /// 用户名检测  通过则true,不通过则false
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        private bool CheckUserName(string name)
-        {
-            var arr = ArrayName.Split(',');
-            foreach (var item in arr)
-            {
-                if (name.Equals(item))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
+        
         /// <summary>
         /// 导入方法
         /// </summary>
@@ -73,7 +57,7 @@ namespace ExpressWeb.Controllers
                 {
                     return Json(new JsonData() { Status = false, Msg = "用户名称不能为空" });
                 }
-                if (!CheckUserName(username))
+                if (dal.GetUserNameManagementIsExists(0, username))
                 {
                     return Json(new JsonData() { Status = false, Msg = "用户名称验证不通过" });
                 }
@@ -765,7 +749,7 @@ namespace ExpressWeb.Controllers
                 {
                     return Json(new { Success = false, Msg = "用户名称不能为空" });
                 }
-                if (!CheckUserName(username))
+                if (dal.GetUserNameManagementIsExists(0, username))
                 {
                     return Json(new { Success = false, Msg = "用户名称验证不通过" });
                 }

@@ -50,6 +50,7 @@
     <Compile Include="DalProhibited.cs" />
     <Compile Include="DalRelation.cs" />
     <Compile Include="DalTaxNumber.cs" />
+    <Compile Include="DalUserNameMge.cs" />
     <Compile Include="DalWayBill.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
