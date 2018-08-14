@@ -533,7 +533,7 @@ namespace ExpressCommon
                         //代付税金
                         if (dt.Columns[col].Caption == "duty_paid")
                         {
-                            if (dt.Rows[row].ItemArray[col].ToString().Equals("1"))
+                            if (dt.Rows[row].ItemArray[col].ToString().Equals("Yes"))
                             {
                                 ws.Cells[row + 2, col].PutValue("Yes");
                             }
